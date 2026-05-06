@@ -417,21 +417,21 @@ PAGE_SIZE = 10
 if st.session_state.user:
     # Top navigation bar using columns
     with st.container():
-        nav1, nav2, nav3, nav4, nav5 = st.columns(5)
+        buf0, nav1, buf1, nav2, buf2, nav3, buf3, nav4, buf4, nav5, buf5 = st.columns(11)
 
-        if nav1.button("Finder"):
+        if nav1.button("Finder", width='stretch'):
             st.session_state.page = "finder"
             st.rerun()
-        if nav2.button("Matches"):
+        if nav2.button("Matches", width='stretch'):
             st.session_state.page = "matches"
             st.rerun()
-        if nav3.button("Messages"):
+        if nav3.button("Messages", width='stretch'):
             st.session_state.page = "chat"
             st.rerun()
-        if nav4.button("Profile"):
+        if nav4.button("Profile", width='stretch'):
             st.session_state.page = "my_profile"
             st.rerun()
-        if nav5.button("Logout"):
+        if nav5.button("Logout", width='stretch'):
             st.session_state.user = None
             st.session_state.page = "login"
             st.rerun()
@@ -713,7 +713,7 @@ elif st.session_state.page == "finder":
             st.markdown(f"### 👤 {user.first_name} {user.last_name}")
 
             # --- COMPATIBILITY (big) ---
-            col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
+            col1, col2, col3, col4 = st.columns([4, 1, 1, 1])
             col1.metric("Compatibility", f"{round(score * 100)}%")
 
             # --- VIEW PROFILE (NEW BUTTON) ---
@@ -822,7 +822,7 @@ elif st.session_state.page == "matches":
         with st.container():
             st.markdown(f"### 👤 {user.first_name} {user.last_name}")
 
-            col1, col2, col3, col4, col5 = st.columns([2,1,1,1,1])
+            col1, col2, col3, col4, col5 = st.columns([4,1,1,1,1])
 
             with col1:
                 st.metric("Compatibility", f"{round(score*100)}%")
@@ -915,7 +915,6 @@ elif st.session_state.page == "profile":
 
         elif state == "requested":
             st.button("Requested ⏳", disabled=True, width="stretch")
-            st.rerun()
 
         elif mine:
             pass
@@ -995,7 +994,7 @@ elif st.session_state.page == "my_profile":
         phone = st.text_input("Phone", value=user_info.get("phone", ""))
         email = st.text_input("Email", value=user_info.get("email", ""))
 
-    col1, col2, col3 = st.columns([1,1,1])
+    col1, col2, col3 = st.columns([1,2,2])
     with col1:
         if st.button("Update Account", width="stretch"):
             updates = {
@@ -1030,7 +1029,7 @@ elif st.session_state.page == "my_profile":
             index=gender_options.index(user_info.get("gender", gender_options[0]))
         )
 
-    col1, col2, col3 = st.columns([1,1,1])
+    col1, col2, col3 = st.columns([1,2,2])
     with col1:
         if st.button("Save Basic Info", width="stretch"):
             supabase.table("user_info").update({
@@ -1062,7 +1061,7 @@ elif st.session_state.page == "my_profile":
                 key=f"pref_{key}"   # ✅ UNIQUE KEY
             )
     
-    col1, col2, col3 = st.columns([1,1,1])
+    col1, col2, col3 = st.columns([1,2,2])
     with col1:
         if st.button("Save Preferences", width="stretch"):
             supabase.table("user_info").update(updated_prefs).eq("user_id", user_id).execute()
@@ -1110,7 +1109,7 @@ elif st.session_state.page == "my_profile":
             updated_weights[key] = slider_value
 
 
-    col1, col2, col3 = st.columns([1,1,1])
+    col1, col2, col3 = st.columns([1,2,2])
     with col1:
         if st.button("Save Importance", width="stretch"):
             # Delete old weights
@@ -1131,7 +1130,7 @@ elif st.session_state.page == "my_profile":
     # --------------------------
     # PROFILE SUMMARY
     # --------------------------
-    col1, col2, col3 = st.columns([1,1,1])
+    col1, col2, col3 = st.columns([1,2,2])
     with col1:
         if st.button("View My Profile", type='primary', width="stretch"):
             st.session_state.view_user = user_id
