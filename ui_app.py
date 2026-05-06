@@ -382,7 +382,7 @@ if st.session_state.user:
                         """
                         <style>
                         .app-title {
-                            color: var(--primaryColor);
+                            color: #7A5FFF;
                         }
                         </style>
 
