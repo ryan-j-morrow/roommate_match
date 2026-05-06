@@ -358,6 +358,8 @@ if st.session_state.page == "login":
         if user:
             st.session_state.user = user["user_id"]
             st.success("Login successful")
+            st.session_state.page = "finder"
+            st.rerun()
         else:
             st.error("Invalid credentials")
 
