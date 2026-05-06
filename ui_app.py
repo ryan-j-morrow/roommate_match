@@ -480,15 +480,6 @@ elif st.session_state.page == "finder":
     end = start + PAGE_SIZE
     page_matches = matches[start:end]
 
-    # ---- Header row ----
-    h1, h2, h3, h4, h5, h6 = st.columns([2, 2, 2, 2, 3, 1.5])
-    h1.write("**Name**")
-    h2.write("**Compatibility**")
-    h3.write("**Status**")
-    h4.write("")
-    h5.write("")
-    h6.write("")
-
     # ---- Render results ----
     for uid, score in page_matches:
         user_df = df_info[df_info.user_id == uid]
@@ -501,22 +492,11 @@ elif st.session_state.page == "finder":
             st.markdown(f"### 👤 {user.first_name} {user.last_name}")
 
             # --- COMPATIBILITY (big) ---
-            col1, col2, col3 = st.columns([2, 1, 1])
+            col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
             col1.metric("Compatibility", f"{round(score * 100)}%")
 
-            # --- STATUS (under compatibility) ---
-            if uid in mutual:
-                col1.success("Match ✅")
-            elif uid in received:
-                col1.warning("Requested You")
-            elif uid in sent:
-                col1.info("Requested 📩")
-
-            # ✅ NEW: BUTTON ROW (THIS IS THE IMPORTANT PART)
-            b1, b2, b3 = st.columns([2, 2, 1.5])
-
             # --- VIEW PROFILE (NEW BUTTON) ---
-            if b1.button("View Profile", key=f"view_{uid}", width='stretch'):
+            if col2.button("View Profile", key=f"view_{uid}", width='stretch'):
                 st.session_state.view_user = uid
                 st.session_state.page = "profile"
 
@@ -524,11 +504,11 @@ elif st.session_state.page == "finder":
             already_requested = uid in sent
 
             if uid in received:
-                if b2.button("Accept", key=f"accept_{uid}", width='stretch'):
+                if col3.button("Accept", key=f"accept_{uid}", width='stretch'):
                     log_action(me, uid, "send_request")
                     st.rerun()
             else:
-                b2.button(
+                col3.button(
                     "Requested" if already_requested else "Request",
                     key=f"req_{uid}",
                     width='stretch',
@@ -538,7 +518,7 @@ elif st.session_state.page == "finder":
                 )
 
             # --- HIDE BUTTON ---
-            if b3.button("Hide", key=f"hide_{uid}", width='stretch'):
+            if col4.button("Hide", key=f"hide_{uid}", width='stretch'):
                 log_action(me, uid, "hide_user")
                 st.rerun()
 
