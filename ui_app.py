@@ -7,7 +7,7 @@ from supabase import create_client, Client
 
 
 st.set_page_config(
-    page_title="Roommate Matcher",
+    page_title="RoomMatch",
     layout="wide"
 )
 
@@ -373,8 +373,8 @@ if st.session_state.user:
         st.markdown(
             """
             <style>
-            /* --- STICKY NAVBAR WRAPPER --- */
-            .sticky-nav {
+            /* Stick the actual Streamlit row */
+            div[data-testid="stHorizontalBlock"]:has(.app-title) {
                 position: fixed;
                 top: 0;
                 left: 0;
@@ -385,45 +385,16 @@ if st.session_state.user:
                 border-bottom: 1px solid rgba(150,150,150,0.2);
             }
 
-            /* Push page content down so it doesn't hide under navbar */
+            /* Push content down */
             .block-container {
                 padding-top: 120px !important;
             }
 
-            /* Ensure full height alignment */
-            div[data-testid="stHorizontalBlock"] {
-                align-items: center !important;
-                min-height: 100px;
-            }
-
-            div[data-testid="column"] {
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-            }
-
-            div[data-testid="column"] > div {
-                width: 100%;
-                display: flex;
-                align-items: center !important;
-                justify-content: center;
-            }
-
-            /* Keep logo/title left aligned */
-            div[data-testid="column"]:first-child > div {
-                justify-content: flex-start;
-            }
-
-            .app-header {
-                display: flex;
-                align-items: center;
-                gap: 16px;
-            }
-
+            /* Title color fix */
             .app-title {
                 font-size: 2.8rem;
                 font-weight: 700;
-                color: var(--primary-color);
+                color: var(--primary-color) !important;
                 margin: 0;
                 line-height: 1;
             }
@@ -815,13 +786,13 @@ elif st.session_state.page == "finder":
             st.divider()
 
     # ---- Pagination controls ----
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
     if col1.button("Prev", disabled=st.session_state.page_idx == 0):
         st.session_state.page_idx -= 1
         st.rerun()
 
-    if col2.button("Next", type='primary', disabled=end >= len(matches)):
+    if col3.button("Next", type='primary', disabled=end >= len(matches)):
         st.session_state.page_idx += 1
         st.rerun()
 
