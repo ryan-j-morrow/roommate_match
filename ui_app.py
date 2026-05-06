@@ -380,16 +380,19 @@ if st.session_state.user:
 
         /* Remove top whitespace */
         .block-container {
-            padding-top: 110px !important;  /* pushes content below fixed nav */
+            padding-top: 130px !important;  /* pushes content below fixed nav */
         }
-
+                    
+        div[data-testid="stHorizontalBlock"] {
+            position: relative;
+        }
 
         /* --------------------------
         STICKY NAV (ROBUST TARGET)
         -------------------------- */
 
-        /* First columns block = your navbar */
-        div[data-testid="stHorizontalBlock"]:first-of-type {
+        /* Find the container that includes your nav anchor */
+        div:has(> .nav-anchor) {
             position: fixed;
             top: 0;
             left: 0;
@@ -405,8 +408,8 @@ if st.session_state.user:
             height: 95px;
 
             display: flex;
-            align-items: center;
-            gap: 10px;
+            flex-direction: column;
+            justify-content: center;
         }
 
 
@@ -488,6 +491,7 @@ if st.session_state.user:
     with st.container():
 
         # Inject improved CSS
+        st.markdown('<div class="nav-anchor"></div>', unsafe_allow_html=True)
 
         sect1, sect2 = st.columns([2, 3])
 
