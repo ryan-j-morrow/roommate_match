@@ -640,7 +640,7 @@ elif st.session_state.page == "profile":
     st.title(f"{user_data["first_name"]} {user_data["last_name"]}")
     st.caption(f"User_ID: {st.session_state.view_user}")
 
-    if is_match(st.session_state.user,user_data["username"]):
+    if is_match(st.session_state.user,user_data["user_id"]):
         st.divider()
         st.subheader("Contact Info")
         st.write(f"📧 Email: {user_data['email']}")
