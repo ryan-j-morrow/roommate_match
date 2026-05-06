@@ -419,23 +419,46 @@ if st.session_state.user:
     with st.container():
         buf0, nav1, buf1, nav2, buf2, nav3, buf3, nav4, buf4, nav5, buf5 = st.columns(11)
 
-        if nav1.button("Finder", width='stretch'):
+        if nav1.button(
+            "Finder",
+            type="primary" if st.session_state.page == "finder" else "secondary",
+            width='stretch'
+        ):
             st.session_state.page = "finder"
             st.rerun()
-        if nav2.button("Matches", width='stretch'):
+
+        if nav2.button(
+            "Matches",
+            type="primary" if st.session_state.page == "matches" else "secondary",
+            width='stretch'
+        ):
             st.session_state.page = "matches"
             st.rerun()
-        if nav3.button("Messages", width='stretch'):
+
+        if nav3.button(
+            "Messages",
+            type="primary" if st.session_state.page == "chat" else "secondary",
+            width='stretch'
+        ):
             st.session_state.page = "chat"
             st.rerun()
-        if nav4.button("Profile", width='stretch'):
+
+        if nav4.button(
+            "Profile",
+            type="primary" if st.session_state.page in ["my_profile", "profile"] else "secondary",
+            width='stretch'
+        ):
             st.session_state.page = "my_profile"
             st.rerun()
-        if nav5.button("Logout", width='stretch'):
+
+        if nav5.button(
+            "Logout",
+            type="secondary",  # usually keep logout neutral
+            width='stretch'
+        ):
             st.session_state.user = None
             st.session_state.page = "login"
             st.rerun()
-
 
 
 
@@ -878,7 +901,7 @@ elif st.session_state.page == "profile":
 
     
 
-    cola, colb, colc, cold = st.columns([1,1,1,1])
+    cola, colb, colc, cold = st.columns([3,1,1,1])
 
     me = st.session_state.user
     other = st.session_state.view_user
@@ -937,25 +960,33 @@ elif st.session_state.page == "profile":
         st.write(f"📱 Phone: {user_data['phone']}")
     
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3, col4 = st.columns(4)
 
+    #Basic Info
     with col1:
         st.metric("Age", user_data["age"])
         st.metric("Gender", user_data["gender"])
         st.metric("Budget", f"${user_data['max_budget']}")
 
+    #Daily Habits
     with col2:
-        st.metric("Sleep", user_data["sleep_schedule"])
-        st.metric("Cleanliness", user_data["cleanliness_level"])
-        st.metric("Social", user_data["social_level"])
+        st.metric("Sleep Schedule", user_data["sleep_schedule"])
+        st.metric("Work From Home", user_data["work_from_home"])
+        st.metric("Social Level", user_data["social_level"])
+
+    #Living Style
+    with col3:
+        st.metric("Cleanliness Level", user_data["cleanliness_level"])
+        st.metric("Guests Frequency", user_data["guests_frequency"])
+        st.metric("Smoking", user_data["smoking"])
+
+    #Compatibility Factors
+    with col4:
+        st.metric("Noise Tolerance", user_data["noise_tolerance"])
+        st.metric("Pets Comfort", user_data["pets_comfort"])
+        st.metric("Conflict Resolution", user_data["conflict_resolution"])
 
     st.markdown("---")
-
-    st.markdown("### Lifestyle")
-    st.write(f"🛏 Sleep: {user_data['sleep_schedule']}")
-    st.write(f"🧹 Cleanliness: {user_data['cleanliness_level']}")
-    st.write(f"🎉 Guests: {user_data['guests_frequency']}")
-    st.write(f"🚬 Smoking: {user_data['smoking']}")
 
 
 # --------------------------
