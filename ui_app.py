@@ -237,6 +237,32 @@ def compatibility_score_v2(userA, userB, wA, wB):
 
     return score_sum / total_weight
 
+def get_data(sheet_name, user_id):
+    # Select the correct worksheet
+    if sheet_name == "UserInfo":
+        ws = ws_info
+    elif sheet_name == "UserWeights":
+        ws = ws_weights
+    elif sheet_name == "InteractionLog":
+        ws = ws_log
+    elif sheet_name == "MessageLog":
+        ws = ws_messages
+    else:
+        raise ValueError("Invalid sheet name")
+
+    # Load into DataFrame
+    df = load_df(ws)
+    
+    # Find the row for the given user_id
+    row = df[df["user_id"] == user_id]
+
+    # Handle case where user is not found
+    if row.empty:
+        return None
+
+    # Return as dictionary
+    return row.iloc[0].to_dict()
+
 
 def send_message(src, dest, text):
     ts = datetime.datetime.now().isoformat()
@@ -878,7 +904,7 @@ elif st.session_state.page == "my_profile":
 
 
 elif st.session_state.page == "chat":
-    active_chat = st.session_state.active_chat
+    active_chat = get_data("UserInfo", st.session_state.active_chat)
     partner = active_chat["user_id"]
     partner_name = f"{partner["first_name"]} {partner["last_name"]}"
     me = st.session_state.user
