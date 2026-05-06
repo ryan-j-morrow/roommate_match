@@ -6,7 +6,10 @@ import datetime
 from supabase import create_client, Client
 
 
-
+st.set_page_config(
+    page_title="Roommate Matcher",
+    layout="wide"
+)
 
 # --------------------------
 # GOOGLE SHEETS CONNECTION
