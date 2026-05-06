@@ -602,23 +602,25 @@ elif st.session_state.page == "matches":
             with col1:
                 st.metric("Compatibility", f"{round(score*100)}%")
             
+
             with col2:
+                if col2.button("View", key=f"match_view_{uid}", width="stretch"):
+                    st.session_state.view_user = uid
+                    st.session_state.page = "profile"
+                    st.rerun()
+
+            with col3:
                 if status == "match":
-                    col2.success("Matched ✅")
+                    col3.success("Matched ✅")
 
                 elif status == "incoming":
-                    if col2.button("Accept", key=f"match_accept_{uid}", width='stretch'):
+                    if col3.button("Accept", key=f"match_accept_{uid}", width='stretch'):
                         log_action(me, uid, "send_request")
                         st.rerun()
 
                 else:
-                    col2.info("Pending 📩")
+                    col3.info("Pending 📩")
 
-            with col3:
-                if col3.button("View", key=f"match_view_{uid}", width="stretch"):
-                    st.session_state.view_user = uid
-                    st.session_state.page = "profile"
-                    st.rerun()
 
             with col4:
                 if col4.button("Hide", key=f"match_hide_{uid}", width="stretch"):
