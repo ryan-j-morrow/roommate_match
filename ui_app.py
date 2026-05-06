@@ -369,16 +369,13 @@ if st.session_state.user:
     st.markdown("""
         <style>
 
-        /* Hide default streamlit header */
-        header {visibility: hidden;}
-
-        /* Prevent overlap */
-        section.main > div {
-            padding-top: 95px !important;
+        /* ✅ Hide default Streamlit header */
+        header {
+            visibility: hidden;
         }
 
-        /* Navbar */
-        .sticky-nav {
+        /* ✅ Make FIRST block (your nav) sticky */
+        section.main div.block-container > div:first-child {
             position: fixed;
             top: 0;
             left: 0;
@@ -387,44 +384,55 @@ if st.session_state.user:
             z-index: 100000;
 
             background: var(--background-color);
-            padding: 10px 30px;
 
+            padding: 10px 30px;
             border-bottom: 1px solid rgba(150,150,150,0.2);
 
-            height: 90px;
+            height: 95px;
 
             display: flex;
-            align-items: center;
+            align-items: center;  /* ✅ vertical center EVERYTHING */
         }
 
-        /* Title */
+        /* ✅ Push page content below nav */
+        section.main div.block-container > div:nth-child(2) {
+            margin-top: 110px;
+        }
+
+        /* ✅ Title styling (FIXED color + alignment) */
         .app-title {
             font-size: 2.8rem;
             font-weight: 700;
-            color: var(--primaryColor) !important;
+            color: var(--primaryColor) !important;  /* ✅ correct variable */
             margin: 0;
             line-height: 1;
         }
 
-        /* Fix column alignment */
+        /* ✅ Force ALL Streamlit columns to align vertically */
         div[data-testid="column"] {
             display: flex;
             align-items: center;
         }
 
-        /* Clean image alignment */
+        /* ✅ Ensure logo aligns nicely */
         .stImage img {
             display: block;
         }
 
-        /* Remove spacing issues */
+        /* ✅ Remove weird heading spacing */
         h1 {
             margin: 0 !important;
         }
 
+        /* ✅ Fix Streamlit button vertical offset */
         button {
             margin-top: 0 !important;
             margin-bottom: 0 !important;
+        }
+
+        /* ✅ Optional: make buttons visually centered cleaner */
+        div[data-testid="column"] > div {
+            width: 100%;
         }
 
         </style>
@@ -432,7 +440,6 @@ if st.session_state.user:
     )
 
 
-    st.markdown('<div class="sticky-nav">', unsafe_allow_html=True)
     with st.container():
 
         # Inject improved CSS
@@ -500,8 +507,6 @@ if st.session_state.user:
                 st.session_state.user = None
                 st.session_state.page = "login"
                 st.rerun()
-
-    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # --------------------------
