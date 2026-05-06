@@ -315,6 +315,7 @@ elif st.session_state.page == "signup":
 
                 st.success("Account created successfully!")
                 st.session_state.page = "login"
+                st.rerun()
 
 
         if cancel:
