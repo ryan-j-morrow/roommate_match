@@ -615,9 +615,8 @@ elif st.session_state.page == "profile":
     df = load_df(ws_info)
     user_data = df[df["user_id"] == st.session_state.user].iloc[0]
 
-    st.markdown("### Personal Info")
+    st.markdown(f"### {user_data["first_name"]} {user_data["last_name"]}")
 
-    st.markdown(f"#### {user_data["first_name"]} {user_data["last_name"]}")
     st.caption(f"User_ID: {st.session_state.user}")
 
     col1, col2 = st.columns(2)
