@@ -413,7 +413,7 @@ if st.session_state.user:
 # --------------------------
 if st.session_state.page == "login":
 
-    col1, col2, col3 = st.columns([1,1,1])
+    col1, col2, col3 = st.columns(3)
 
     with col1:
         st.title("Log-In")
