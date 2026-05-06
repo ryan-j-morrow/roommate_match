@@ -480,6 +480,15 @@ elif st.session_state.page == "finder":
     end = start + PAGE_SIZE
     page_matches = matches[start:end]
 
+    # ---- Header row ----
+    h1, h2, h3, h4, h5, h6 = st.columns([2, 2, 2, 2, 3, 1.5])
+    h1.write("**Name**")
+    h2.write("**Compatibility**")
+    h3.write("**Status**")
+    h4.write("")
+    h5.write("")
+    h6.write("")
+
     # ---- Render results ----
     for uid, score in page_matches:
         user_df = df_info[df_info.user_id == uid]
@@ -487,40 +496,47 @@ elif st.session_state.page == "finder":
             continue
         user = user_df.iloc[0]
 
-        with st.container():
-            st.markdown(f"### 👤 {user.first_name} {user.last_name}")
+        name = f"{user.first_name} {user.last_name}"
+        comp = f"{round(score * 100)}%"
 
-            col1, col2, col3 = st.columns([2, 1, 1])
+        # ---- STATUS ----
+        if uid in mutual:
+            status = "Match ✅"
+        elif uid in received:
+            status = "Requested You"
+        elif uid in sent:
+            status = "Requested 📩"
+        else:
+            status = "—"
 
-            # LEFT COLUMN
-            col1.metric("Compatibility", f"{round(score * 100)}%")
+        # ---- ROW LAYOUT ----
+        col1, col2, col3, col4, col5, col6 = st.columns([2, 2, 2, 2, 3, 1.5])
 
-            # --- STATE LOGIC ---
-            if uid in mutual:
-                col1.success("Match ✅")
-                col2.empty()  # keep layout
+        col1.write(name)
+        col2.write(comp)
+        col3.write(status)
 
-            elif uid in received:
-                if col2.button("Accept", key=f"accept_{uid}"):
-                    log_action(me, uid, "send_request")
-                    st.success("Match accepted!")
-                    st.rerun()
+        # ---- VIEW PROFILE ----
+        if col4.button("View Profile", key=f"view_{uid}"):
+            st.session_state.view_user = uid
+            st.session_state.page = "profile"
 
-            elif uid in sent:
-                col1.info("Requested 📩")
-                col2.empty()  # keep layout
+        # ---- REQUEST BUTTON (DISABLED IF SENT) ----
+        already_requested = uid in sent
 
-            else:
-                if col2.button("Request", key=f"req_{uid}"):
-                    log_action(me, uid, "send_request")
-                    st.rerun()
+        col5.button(
+            "Requested" if already_requested else "Request",
+            key=f"req_{uid}",
+            disabled=already_requested,
+            on_click=(lambda u=uid: log_action(me, u, "send_request")) if not already_requested else None
+        )
 
-            # ALWAYS IN SAME SPOT
-            if col3.button("Hide", key=f"hide_{uid}"):
-                log_action(me, uid, "hide_user")
-                st.rerun()
+        # ---- HIDE ----
+        if col6.button("Hide", key=f"hide_{uid}"):
+            log_action(me, uid, "hide_user")
+            st.rerun()
 
-            st.divider()            
+        st.divider()           
 
     # ---- Pagination controls ----
     col1, col2 = st.columns(2)
