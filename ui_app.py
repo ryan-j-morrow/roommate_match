@@ -911,17 +911,19 @@ elif st.session_state.page == "my_profile":
         phone = st.text_input("Phone", value=user_info.get("phone", ""))
         email = st.text_input("Email", value=user_info.get("email", ""))
 
-    if st.button("Update Account"):
-        updates = {
-            "phone": phone,
-            "email": email
-        }
+    col1, col2, col3 = st.columns([1,1,1])
+    with col1:
+        if st.button("Update Account", width="Stretch"):
+            updates = {
+                "phone": phone,
+                "email": email
+            }
 
-        if new_password:
-            updates["password"] = new_password
+            if new_password:
+                updates["password"] = new_password
 
-        supabase.table("user_info").update(updates).eq("user_id", user_id).execute()
-        st.success("✅ Account updated!")
+            supabase.table("user_info").update(updates).eq("user_id", user_id).execute()
+            st.success("✅ Account updated!")
 
     st.markdown("---")
 
@@ -944,15 +946,17 @@ elif st.session_state.page == "my_profile":
             index=gender_options.index(user_info.get("gender", gender_options[0]))
         )
 
-    if st.button("Save Basic Info"):
-        supabase.table("user_info").update({
-            "first_name": first_name,
-            "last_name": last_name,
-            "age": age,
-            "gender": gender
-        }).eq("user_id", user_id).execute()
+    col1, col2, col3 = st.columns([1,1,1])
+    with col1:
+        if st.button("Save Basic Info", width="Stretch"):
+            supabase.table("user_info").update({
+                "first_name": first_name,
+                "last_name": last_name,
+                "age": age,
+                "gender": gender
+            }).eq("user_id", user_id).execute()
 
-        st.success("✅ Basic info updated!")
+            st.success("✅ Basic info updated!")
 
     st.markdown("---")
 
@@ -973,10 +977,12 @@ elif st.session_state.page == "my_profile":
                 index=options.index(user_info.get(key)) if user_info.get(key) in options else 0,
                 key=f"pref_{key}"   # ✅ UNIQUE KEY
             )
-
-    if st.button("Save Preferences"):
-        supabase.table("user_info").update(updated_prefs).eq("user_id", user_id).execute()
-        st.success("✅ Preferences updated!")
+    
+    col1, col2, col3 = st.columns([1,1,1])
+    with col1:
+        if st.button("Save Preferences", width="Stretch"):
+            supabase.table("user_info").update(updated_prefs).eq("user_id", user_id).execute()
+            st.success("✅ Preferences updated!")
 
     st.markdown("---")
 
@@ -1020,32 +1026,33 @@ elif st.session_state.page == "my_profile":
             updated_weights[key] = slider_value
 
 
-    if st.button("Save Importance"):
-        # Delete old weights
-        supabase.table("user_weights").delete().eq("user_id", user_id).execute()
+    col1, col2, col3 = st.columns([1,1,1])
+    with col1:
+        if st.button("Save Importance", width="Stretch"):
+            # Delete old weights
+            supabase.table("user_weights").delete().eq("user_id", user_id).execute()
 
-        # Insert new weights
-        rows = [
-            {"user_id": user_id, "question": q, "weight": w}
-            for q, w in updated_weights.items()
-        ]
+            # Insert new weights
+            rows = [
+                {"user_id": user_id, "question": q, "weight": w}
+                for q, w in updated_weights.items()
+            ]
 
-        supabase.table("user_weights").insert(rows).execute()
+            supabase.table("user_weights").insert(rows).execute()
 
-        st.success("✅ Importance settings updated!")
+            st.success("✅ Importance settings updated!")
 
     st.markdown("---")
 
     # --------------------------
     # PROFILE SUMMARY
     # --------------------------
-    st.subheader("Preview 👀")
-
-    st.json({
-        "Name": f"{first_name} {last_name}",
-        "Preferences": updated_prefs,
-        "Importance": updated_weights
-    })
+    col1, col2, col3 = st.columns([1,1,1])
+    with col1:
+        if st.button("View My Profile", type='Primary', width="Stretch"):
+            st.session_state.view_user = user_id
+            st.session_state.page = "profile"
+            st.rerun()
 
 # --------------------------
 # CHAT
