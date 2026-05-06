@@ -817,10 +817,11 @@ elif st.session_state.page == "profile":
     with colc:
         if mine:
             pass
-        else st.button("Hide User", width='stretch'):
-            log_action(me, other, "hide_user")
-            st.success("User Hidden!")
-            st.rerun()
+        else: 
+            if st.button("Hide User", width='stretch'):
+                log_action(me, other, "hide_user")
+                st.success("User Hidden!")
+                st.rerun()
 
 
     with cold:
