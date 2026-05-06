@@ -366,42 +366,43 @@ PAGE_SIZE = 10
 
 if st.session_state.user:
 
+    st.markdown(
+        """
+        <style>
+        .sticky-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+
+            z-index: 9999;
+
+            background: var(--background-color);
+            padding: 10px 20px;
+            border-bottom: 1px solid rgba(150,150,150,0.2);
+        }
+
+        /* ✅ This prevents content from hiding UNDER navbar */
+        .block-container {
+            padding-top: 110px !important;
+        }
+
+        /* ✅ Fix title color */
+        .app-title {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: var(--primary-color) !important;
+            margin: 0;
+        }
+        </style>`
+        """,
+        unsafe_allow_html=True
+    )
+
     st.markdown('<div class="sticky-nav">', unsafe_allow_html=True)
     with st.container():
 
         # Inject improved CSS
-        st.markdown(
-            """
-            <style>
-            /* Stick the actual Streamlit row */
-            div[data-testid="stHorizontalBlock"]:has(.app-title) {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                z-index: 9999;
-                background: var(--background-color);
-                padding: 10px 20px;
-                border-bottom: 1px solid rgba(150,150,150,0.2);
-            }
-
-            /* Push content down */
-            .block-container {
-                padding-top: 120px !important;
-            }
-
-            /* Title color fix */
-            .app-title {
-                font-size: 2.8rem;
-                font-weight: 700;
-                color: var(--primary-color) !important;
-                margin: 0;
-                line-height: 1;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
 
         sect1, sect2 = st.columns([2, 3])
 
