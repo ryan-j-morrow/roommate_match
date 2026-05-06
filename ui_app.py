@@ -74,18 +74,30 @@ def log_action(src, dest, action):
 def get_match_state(me):
     logs = load_df(ws_log)
 
-    sent = logs[(logs.user_id_source == me) & (logs.action == "send_request")]
-    received = logs[(logs.user_id_dest == me) & (logs.action == "send_request")]
+    if logs.empty:
+        return {"sent": set(), "received": set(), "mutual": set(), "hidden": set()}
 
-    mutual = set(sent.user_id_dest).intersection(set(received.user_id_source))
+    sent = logs[(logs.src == me) & (logs.action == "send_request")]
+    received = logs[(logs.dest == me) & (logs.action == "send_request")]
 
-    hidden = logs[(logs.user_id_source == me) & (logs.action == "hide_user")]
+    accepted = logs[logs.action == "accept_request"]
+
+    # Mutual = either:
+    # 1. both sent requests
+    # 2. someone accepted
+    mutual = set(sent.dest).intersection(set(received.src))
+
+    for _, row in accepted.iterrows():
+        mutual.add(row.src)
+        mutual.add(row.dest)
+
+    hidden = logs[(logs.src == me) & (logs.action == "hide_user")]
 
     return {
-        "sent": set(sent.user_id_dest),
-        "received": set(received.user_id_source),
+        "sent": set(sent.dest),
+        "received": set(received.src),
         "mutual": mutual,
-        "hidden": set(hidden.user_id_dest)
+        "hidden": set(hidden.dest)
     }
 
 def categorical_similarity(a, b, options):
@@ -170,21 +182,49 @@ if "page_idx" not in st.session_state:
 
 PAGE_SIZE = 10
 
+
+# --------------------------
+# Navigation
+# --------------------------
+
+if st.session_state.user:
+    st.sidebar.title("Navigation")
+
+    page_choice = st.sidebar.radio(
+        "Go to",
+        ["Matches", "Roommate Finder", "Profile", "My Profile"]
+    )
+
+    if page_choice == "Matches":
+        st.session_state.page = "matches"
+    elif page_choice == "Roommate Finder":
+        st.session_state.page = "finder"
+    elif page_choice == "Profile":
+        st.session_state.page = "profile"
+
+    if st.sidebar.button("Logout"):
+        st.session_state.user = None
+        st.session_state.page = "login"
+        st.rerun()
+
+
 # --------------------------
 # LOGIN
 # --------------------------
 if st.session_state.page == "login":
     st.title("Roommate Matcher 🏠")
 
-    uid = st.text_input("User ID")
-    pwd = st.text_input("Password", type="password")
+    with st.form("login_form", clear_on_submit=False):
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        submit = st.form_submit_button("Sign In")
 
-    if st.button("Login"):
+    if submit:
         df = load_df(ws_info)
-        user = df[(df.user_id == uid) & (df.password == pwd)]
+        user_row = df[(df["username"] == username) & (df["password"] == password)]
 
-        if len(user):
-            st.session_state.user = uid
+        if not user_row.empty:
+            st.session_state.user = username
             st.session_state.page = "matches"
             st.rerun()
         else:
@@ -249,9 +289,9 @@ elif st.session_state.page == "signup":
             st.session_state.page = "login"
             st.rerun()
 # --------------------------
-# MATCHES
+# ROOMMATE FINDER
 # --------------------------
-elif st.session_state.page == "matches":
+elif st.session_state.page == "finder":
 
     st.title("Find Roommates")
 
@@ -283,52 +323,83 @@ elif st.session_state.page == "matches":
 
     # ---- Filters ----
     st.sidebar.header("Filters")
-    min_budget = st.sidebar.selectbox("Min Budget", max_budget_options)
-    smoke_pref = st.sidebar.selectbox("Smoking", ["Any"] + smoking_options)
+    filters = {}
+    for q, opts in questions:
+        filters[q] = st.sidebar.multiselect(q, opts)
 
-    def passes_filters(user):
-        # Hidden users
-        if user.user_id in hidden:
-            return False
+    def passes_filters(user, filters):
+        """
+        Returns True if a candidate user passes all selected filters.
+        
+        user: dict / pd.Series of candidate profile
+        filters: dict of filter criteria selected by current user
+        """
 
-        # Missing data safety
-        if pd.isna(user.max_budget):
-            return False
+        for key, value in filters.items():
+            # Skip empty filters
+            if value is None or value == "" or value == []:
+                continue
 
-        # Budget filter (numeric, correct)
-        try:
-            user_budget = int(float(user.max_budget))
-            min_budget_val = int(float(min_budget))
-        except (ValueError, TypeError):
-            return False
+            # Skip missing user data
+            if key not in user or user[key] is None:
+                return False
 
-        if user_budget < min_budget_val:
-            return False
+            # Special handling for budget (numeric <=)
+            if key == "max_budget":
+                try:
+                    if float(user[key]) > float(value):
+                        return False
+                except:
+                    return False
 
-        # Smoking filter
-        if smoke_pref != "Any" and user.smoking != smoke_pref:
-            return False
+            # Numeric exact match (age if needed)
+            elif key in ["age"]:
+                try:
+                    if int(user[key]) != int(value):
+                        return False
+                except:
+                    return False
+
+            # General categorical match
+            else:
+                if user[key] != value:
+                    return False
 
         return True
-
+    
     # ---- Compute matches ----
     matches = []
 
     for _, other in df_info.iterrows():
-        if other.user_id == me:
+
+        uid = other.user_id
+
+        if uid == me:
             continue
 
-        if not passes_filters(other):
+        # Hide logic
+        if uid in hidden:
             continue
 
-        w_other = weights_map.get(other.user_id)
+        # Skip already matched (optional)
+        if uid in mutual:
+             continue
+
+        # Filters
+        if not passes_filters(other, filters):
+            continue
+
+        w_other = weights_map.get(uid)
         if w_other is None:
             continue
 
         score = compatibility_score_v2(my_info, other, my_weights, w_other)
 
-        if score is not None:
-            matches.append((other.user_id, score))
+        # Non-negotiables auto filtered because score=None
+        if score is None:
+            continue
+
+        matches.append((uid, score))
 
     # ---- Sort matches ----
     matches.sort(key=lambda x: x[1], reverse=True)
@@ -354,14 +425,21 @@ elif st.session_state.page == "matches":
 
             if uid in mutual:
                 col1.success("Match ✅")
+
+            elif uid in received:
+                if col2.button("Accept", key=f"accept_{uid}"):
+                    log_action(me, uid, "accept_request")
+                    st.rerun()
+
             elif uid in sent:
                 col1.info("Requested 📩")
 
-            if col2.button("View", key=f"view_{uid}"):
-                st.session_state.view = uid
-                st.session_state.page = "profile"
-                st.rerun()
+            else:
+                if col2.button("Request", key=f"req_{uid}"):
+                    log_action(me, uid, "send_request")
+                    st.rerun()
 
+            # ALWAYS AVAILABLE
             if col3.button("Hide", key=f"hide_{uid}"):
                 log_action(me, uid, "hide_user")
                 st.rerun()
@@ -380,37 +458,150 @@ elif st.session_state.page == "matches":
         st.rerun()
 
 # --------------------------
+# MATCHES
+# --------------------------
+elif st.session_state.page == "matches":
+    st.title("Your Matches")
+
+    df_info = load_df(ws_info)
+    df_weights = load_df(ws_weights)
+    me = st.session_state.user
+
+    my_info = df_info[df_info.user_id == me].iloc[0]
+    my_weights = df_weights[df_weights.user_id == me].iloc[0]
+
+    state = get_match_state(me)
+
+    hidden = state["hidden"]
+    sent = state["sent"]
+    received = state["received"]
+    mutual = state["mutual"]
+
+    weights_map = {row.user_id: row for _, row in df_weights.iterrows()}
+
+    results = []
+
+    for _, other in df_info.iterrows():
+        uid = other.user_id
+
+        if uid == me or uid in hidden:
+            continue
+
+        if uid not in mutual and uid not in sent and uid not in received:
+            continue
+
+        w_other = weights_map.get(uid)
+        if w_other is None:
+            continue
+
+        score = compatibility_score_v2(my_info, other, my_weights, w_other)
+
+        if score is None:
+            continue
+
+        if uid in mutual:
+            status = "match"
+        elif uid in received:
+            status = "incoming"
+        else:
+            status = "pending"
+
+        results.append((uid, score, status))
+
+    # SORT: matches first, then incoming, then pending
+    status_order = {"match": 0, "incoming": 1, "pending": 2}
+    results.sort(key=lambda x: (status_order[x[2]], -x[1]))
+
+    # RENDER
+    for uid, score, status in results:
+        user = df_info[df_info.user_id == uid].iloc[0]
+
+        with st.container():
+            st.markdown(f"### 👤 {user.first_name} {user.last_name}")
+            st.metric("Compatibility", f"{round(score*100)}%")
+
+            col1, col2, col3 = st.columns([2,1,1])
+
+            if status == "match":
+                col1.success("Matched ✅")
+
+            elif status == "incoming":
+                if col2.button("Accept", key=f"match_accept_{uid}"):
+                    log_action(me, uid, "accept_request")
+                    st.rerun()
+
+            else:
+                col1.info("Pending 📩")
+
+            if col2.button("View", key=f"match_view_{uid}"):
+                st.session_state.view = uid
+                st.session_state.page = "profile"
+                st.rerun()
+
+            if col3.button("Hide", key=f"match_hide_{uid}"):
+                log_action(me, uid, "hide_user")
+                st.rerun()
+
+            st.divider()
+
+
+# --------------------------
 # PROFILE
 # --------------------------
 elif st.session_state.page == "profile":
+    st.title("My Profile")
 
-    df_info = load_df(ws_info)
-    me = st.session_state.user
-    target = st.session_state.view
+    df = load_df(ws_info)
+    user_data = df[df["username"] == st.session_state.user].iloc[0]
 
-    user = df_info[df_info.user_id == target].iloc[0]
-    state = get_match_state(me)
+    st.markdown("### Personal Info")
 
-    st.header(f"{user.first_name} {user.last_name}")
+    col1, col2 = st.columns(2)
 
-    # If mutual match → show contact
-    if target in state["mutual"]:
-        st.success("✅ Matched!")
-        st.write(f"📞 {user.phone}")
-        st.write(f"📧 {user.email}")
+    with col1:
+        st.metric("Age", user_data["age"])
+        st.metric("Gender", user_data["gender"])
+        st.metric("Budget", f"${user_data['max_budget']}")
 
-    for q, _ in questions:
-        st.write(f"{q}: {user[q]}")
+    with col2:
+        st.metric("Sleep", user_data["sleep_schedule"])
+        st.metric("Cleanliness", user_data["cleanliness_level"])
+        st.metric("Social", user_data["social_level"])
 
-    if target not in state["sent"]:
-        if st.button("Request to Chat"):
-            log_action(me, target, "send_request")
-    else:
-        st.info("Request Sent")
+    st.markdown("---")
 
-    if st.button("Hide User"):
-        log_action(me, target, "hide_user")
+    st.markdown("### Lifestyle")
+    st.write(f"🛏 Sleep: {user_data['sleep_schedule']}")
+    st.write(f"🧹 Cleanliness: {user_data['cleanliness_level']}")
+    st.write(f"🎉 Guests: {user_data['guests_frequency']}")
+    st.write(f"🚬 Smoking: {user_data['smoking']}")
 
-    if st.button("Back"):
-        st.session_state.page = "matches"
+
+# --------------------------
+# MY PROFILE
+# --------------------------
+
+elif st.session_state.page == "my_profile":
+    st.title("Edit Profile")
+
+    df = load_df(ws_info)
+    user_idx = df[df["username"] == st.session_state.user].index[0]
+    user_data = df.loc[user_idx]
+
+    with st.form("edit_profile_form"):
+        updated = {}
+        for q, opts in questions:
+            updated[q] = st.selectbox(q.replace("_", " ").title(), opts, index=opts.index(user_data[q]))
+
+        save = st.form_submit_button("Save Changes")
+
+    if save:
+        for key, val in updated.items():
+            df.at[user_idx, key] = val
+
+        ws_info.clear()
+        ws_info.update([df.columns.values.tolist()] + df.values.tolist())
+
+        st.success("Profile updated!")
+        st.session_state.page = "profile"
         st.rerun()
