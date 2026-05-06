@@ -54,19 +54,6 @@ questions = [
 # --------------------------
 # HELPERS
 # --------------------------
-def render_header():
-    col1, col2 = st.columns([1, 6])
-
-    with col1:
-        st.image("logo.png", width=60)  # Replace with your logo file
-
-    with col2:
-        st.markdown(
-            "<h1 style='margin-bottom:0;'>RoomMatch</h1>",
-            unsafe_allow_html=True
-        )
-
-    st.markdown("---")
 
 def btn(label, **kwargs):
     # default to primary unless explicitly overridden
@@ -380,51 +367,91 @@ PAGE_SIZE = 10
 if st.session_state.user:
     # Top navigation bar using columns
 
-    render_header()
 
     with st.container():
-        buf0, nav1, buf1, nav2, buf2, nav3, buf3, nav4, buf4, nav5, buf5 = st.columns(11)
+        sect1, sect2 = st.columns(1,2)
+        with sect1:
+            # Inject CSS for primary color + alignment
+            st.markdown(
+                """
+                <style>
+                .app-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                }
+                .app-title {
+                    font-size: 2.2rem;
+                    font-weight: 700;
+                    color: var(--primary-color); /* Uses Streamlit theme color */
+                    margin: 0;
+                    line-height: 1;
+                }
+                </style>
+                """,
+                unsafe_allow_html=True
+            )
 
-        if nav1.button(
-            "Finder",
-            type="primary" if st.session_state.page == "finder" else "secondary",
-            width='stretch'
-        ):
-            st.session_state.page = "finder"
-            st.rerun()
+            # Layout
+            col1, col2 = st.columns([1, 10])
 
-        if nav2.button(
-            "Matches",
-            type="primary" if st.session_state.page == "matches" else "secondary",
-            width='stretch'
-        ):
-            st.session_state.page = "matches"
-            st.rerun()
+            with col1:
+                st.image("logo.png", use_container_width=True)
 
-        if nav3.button(
-            "Messages",
-            type="primary" if st.session_state.page == "chat" else "secondary",
-            width='stretch', disabled=st.session_state.page != "chat"
-        ):
-            st.session_state.page = "chat"
-            st.rerun()
+            with col2:
+                st.markdown(
+                    """
+                    <div class="app-header">
+                        <h1 class="app-title">Roommate Matcher</h1>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
 
-        if nav4.button(
-            "Profile",
-            type="primary" if st.session_state.page in ["my_profile", "profile"] else "secondary",
-            width='stretch'
-        ):
-            st.session_state.page = "my_profile"
-            st.rerun()
 
-        if nav5.button(
-            "Logout",
-            type="secondary",  # usually keep logout neutral
-            width='stretch'
-        ):
-            st.session_state.user = None
-            st.session_state.page = "login"
-            st.rerun()
+        with sect2:
+            buf0, nav1, buf1, nav2, buf2, nav3, buf3, nav4, buf4, nav5, buf5 = st.columns(11)
+
+            if nav1.button(
+                "Finder",
+                type="primary" if st.session_state.page == "finder" else "secondary",
+                width='stretch'
+            ):
+                st.session_state.page = "finder"
+                st.rerun()
+
+            if nav2.button(
+                "Matches",
+                type="primary" if st.session_state.page == "matches" else "secondary",
+                width='stretch'
+            ):
+                st.session_state.page = "matches"
+                st.rerun()
+
+            if nav3.button(
+                "Messages",
+                type="primary" if st.session_state.page == "chat" else "secondary",
+                width='stretch', disabled=st.session_state.page != "chat"
+            ):
+                st.session_state.page = "chat"
+                st.rerun()
+
+            if nav4.button(
+                "Profile",
+                type="primary" if st.session_state.page in ["my_profile", "profile"] else "secondary",
+                width='stretch'
+            ):
+                st.session_state.page = "my_profile"
+                st.rerun()
+
+            if nav5.button(
+                "Logout",
+                type="secondary",  # usually keep logout neutral
+                width='stretch'
+            ):
+                st.session_state.user = None
+                st.session_state.page = "login"
+                st.rerun()
 
 
 
