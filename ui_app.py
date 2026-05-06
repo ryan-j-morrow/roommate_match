@@ -913,7 +913,17 @@ elif st.session_state.page == "chat":
         st.error("You can only message matched users.")
         st.stop()
 
-    st.title(f"Chat with {partner}")
+
+    col1, col2 = st.columns([3,1])
+
+    with col1:
+        st.title(f"Chat with {partner_name}")
+    
+    with col2:
+        if col2.button("View", key=f"match_view_{partner}", width="stretch"):
+            st.session_state.view_user = partner
+            st.session_state.page = "profile"
+            st.rerun()
 
     msgs = load_messages(me, partner)
 
