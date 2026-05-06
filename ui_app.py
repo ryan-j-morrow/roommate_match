@@ -913,17 +913,18 @@ elif st.session_state.page == "chat":
         st.error("You can only message matched users.")
         st.stop()
 
+    st.title(f"Chat with {partner_name}")
+    st.markdown("#### ")
 
     col1, col2 = st.columns([3,1])
 
-    with col1:
-        st.title(f"Chat with {partner_name}")
-    
     with col2:
-        if col2.button("View", key=f"match_view_{partner}", width="stretch"):
+        if col2.button("View Profile", key=f"match_view_{partner}", width="stretch"):
             st.session_state.view_user = partner
             st.session_state.page = "profile"
             st.rerun()
+    
+    st.markdown("#### ")
 
     msgs = load_messages(me, partner)
 
@@ -958,6 +959,8 @@ elif st.session_state.page == "chat":
             """, unsafe_allow_html=True)
 
     # Input box
+    st.markdown("#### ")
+
     with st.form("send_msg", clear_on_submit=True):
         msg = st.text_input("Message")
         submitted = st.form_submit_button("Send")
