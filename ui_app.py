@@ -1,36 +1,18 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import gspread
 import json 
-from google.oauth2.service_account import Credentials
 import datetime
+from supabase import create_client, Client
 
 # --------------------------
 # GOOGLE SHEETS CONNECTION
 # --------------------------
 
-def connect_gsheet():
-    scope = [
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive"
-    ]
+SUPABASE_URL = st.secrets['SUPABASE_URL']
+SUPABASE_KEY = st.secrets['SUPABASE_PUB_KEY']
 
-    creds = Credentials.from_service_account_info(
-        st.secrets["gcp_service_account"],
-        scopes=scope
-    )
-
-    return gspread.authorize(creds)
-
-
-client = connect_gsheet()
-sheet = client.open("roommate_match_demo")
-
-ws_info = sheet.worksheet("UserInfo")
-ws_weights = sheet.worksheet("UserWeights")
-ws_log = sheet.worksheet("InteractionLog")
-ws_messages = sheet.worksheet("MessageLog")
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # --------------------------
 # OPTIONS
@@ -66,14 +48,29 @@ questions = [
 # --------------------------
 # HELPERS
 # --------------------------
-def load_df(ws):
-    return pd.DataFrame(ws.get_all_records())
+def load_df(table_name):
+    response = supabase.table(table_name).select("*").execute()
+    return pd.DataFrame(response.data)
+
+def authenticate_user(user_id, password):def authenticate_user(user("*") \
+        .eq("user_id", user_id) \
+        .eq("password", password) \
+        .execute()
+
+    return res.data[0] if res.data else None
+    res = supabase.table("user_info") \
+
 
 def log_action(src, dest, action):
-    ws_log.append_row([src, dest, action, str(datetime.datetime.now())])
+    supabase.table("interaction_log").insert({
+        "src": src,
+        "dest": dest,
+        "action": action,
+        "timestamp": datetime.datetime.now().isoformat()
+    }).execute()
 
 def get_match_state(me):
-    logs = load_df(ws_log)
+    logs = load_df("interaction_log")
 
     sent_df = logs[
         (logs.user_id_source == me) &
@@ -105,7 +102,7 @@ def get_match_state(me):
     }
 
 def is_match(user_a, user_b):
-    logs = load_df(ws_log)
+    logs = load_df("interaction_log")
 
     liked_a_to_b = (
         (logs["user_id_source"] == user_a) &
@@ -122,7 +119,7 @@ def is_match(user_a, user_b):
     return liked_a_to_b.any() and liked_b_to_a.any()
 
 def is_requested(user_a, user_b):
-    logs = load_df(ws_log)
+    logs = load_df("interaction_log")
 
     requested_a_to_b = (
         (logs["user_id_source"] == user_a) &
@@ -141,7 +138,7 @@ def is_requested(user_a, user_b):
 
 
 def is_pending(user_a, user_b):
-    logs = load_df(ws_log)
+    logs = load_df("interaction_log")
 
     requested_b_to_a = (
         (logs["user_id_source"] == user_b) &
@@ -237,40 +234,22 @@ def compatibility_score_v2(userA, userB, wA, wB):
 
     return score_sum / total_weight
 
-def get_data(sheet_name, user_id):
-    # Select the correct worksheet
-    if sheet_name == "UserInfo":
-        ws = ws_info
-    elif sheet_name == "UserWeights":
-        ws = ws_weights
-    elif sheet_name == "InteractionLog":
-        ws = ws_log
-    elif sheet_name == "MessageLog":
-        ws = ws_messages
-    else:
-        raise ValueError("Invalid sheet name")
-
-    # Load into DataFrame
-    df = load_df(ws)
-    
-    # Find the row for the given user_id
-    row = df[df["user_id"] == user_id]
-
-    # Handle case where user is not found
-    if row.empty:
-        return None
-
-    # Return as dictionary
-    return row.iloc[0].to_dict()
+def get_data(table_name, user_id):
+    response = supabase.table(table_name).select("*").eq("user_id", user_id).execute()
+    return response.data[0] if response.data else None
 
 
 def send_message(src, dest, text):
-    ts = datetime.datetime.now().isoformat()
-    ws_messages.append_row([src, dest, text, ts])
+    supabase.table("message_log").insert({
+        "src": src,
+        "dest": dest,
+        "message": text,
+        "timestamp": datetime.datetime.now().isoformat()
+    }).execute()
 
 
 def load_messages(user_a, user_b):
-    df = load_df(ws_messages)
+    df = load_df("message_log")
 
     if df.empty:
         return df
@@ -372,15 +351,14 @@ if st.session_state.page == "login":
         submit = st.form_submit_button("Sign In")
 
     if submit:
-        df = load_df(ws_info)
-        user_row = df[(df["user_id"] == user_id) & (df["password"] == password)]
+        user = authenticate_user(user_id, password)
 
-        if not user_row.empty:
-            st.session_state.user = user_id
-            st.session_state.page = "finder"
-            st.rerun()
+        if user:
+            st.session_state.user = user["user_id"]
+            st.success("Login successful")
         else:
-            st.error("Invalid login")
+            st.error("Invalid credentials")
+
 
     if st.button("Create Account"):
         st.session_state.page = "signup"
@@ -438,43 +416,48 @@ elif st.session_state.page == "signup":
 
 
         if submitted:
+            #Check if user already exists
+            existing = supabase.table("user_info") \
+                .select("user_id") \
+                .eq("user_id", user_id) \
+                .execute()
 
-            existing_users = load_df(ws_info)
-
-            # Check duplicate user_id
-            if not existing_users.empty and user_id in existing_users.get("user_id", []).values:
+            if existing.data:
                 st.error("User ID already exists.")
             else:
-                # ✅ Save USER INFO
-                ws_info.append_row([
-                    user_id,
-                    password,
-                    first_name,
-                    last_name,
-                    phone,
-                    email,
-                    *responses.values()
-                ])
+                #Insert USER INFO
+                supabase.table("user_info").insert({
+                    "user_id": user_id,
+                    "password": password,
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "phone": phone,
+                    "email": email,
+                    "age": responses["age"],
+                    "gender": responses["gender"],
+                    "sleep_schedule": responses["sleep_schedule"],
+                    "cleanliness_level": responses["cleanliness_level"],
+                    "guests_frequency": responses["guests_frequency"],
+                    "smoking": responses["smoking"],
+                    "noise_tolerance": responses["noise_tolerance"],
+                    "max_budget": responses["max_budget"],
+                    "pets_comfort": responses["pets_comfort"],
+                    "work_from_home": responses["work_from_home"],
+                    "social_level": responses["social_level"],
+                    "conflict_resolution": responses["conflict_resolution"]
+                }).execute()
 
-                # ✅ Convert importance -> weights row (MATCHES SHEET COLUMNS)
-                weight_row = [
-                    user_id,
-                    weights["age"],
-                    weights["gender"],
-                    weights["sleep_schedule"],
-                    weights["cleanliness_level"],
-                    weights["guests_frequency"],
-                    weights["smoking"],
-                    weights["noise_tolerance"],
-                    weights["max_budget"],
-                    weights["pets_comfort"],
-                    weights["work_from_home"],
-                    weights["social_level"],
-                    weights["conflict_resolution"],
-                ]
+                # ✅ Insert WEIGHTS (same structure as before, but row-per-question table)
+                weight_data = []
 
-                # ✅ Save weights
-                ws_weights.append_row(weight_row)
+                for key, value in weights.items():
+                    weight_data.append({
+                        "user_id": user_id,
+                        "question": key,
+                        "weight": value
+                    })
+
+                supabase.table("user_weights").insert(weight_data).execute()
 
                 st.success("Account created successfully!")
                 st.session_state.page = "login"
@@ -491,8 +474,8 @@ elif st.session_state.page == "finder":
 
     st.title("Find Roommates")
 
-    df_info = load_df(ws_info)
-    df_weights = load_df(ws_weights)
+    df_info = load_df("user_info")
+    df_weights = load_df("user_weights")
 
     me = st.session_state.user
 
@@ -664,8 +647,8 @@ elif st.session_state.page == "finder":
 elif st.session_state.page == "matches":
     st.title("Your Matches")
 
-    df_info = load_df(ws_info)
-    df_weights = load_df(ws_weights)
+    df_info = load_df("user_info")
+    df_weights = load_df("user_weights")
     me = st.session_state.user
 
     my_info = df_info[df_info.user_id == me].iloc[0]
@@ -772,7 +755,7 @@ elif st.session_state.page == "matches":
 elif st.session_state.page == "profile":
     
 
-    df = load_df(ws_info)
+    df = load_df("user_info")
     user_data = df[df["user_id"] == st.session_state.view_user].iloc[0]
     match = is_match(st.session_state.user,st.session_state.view_user)
     
@@ -862,7 +845,7 @@ elif st.session_state.page == "my_profile":
     st.title("Edit Profile")
 
     
-    df = load_df(ws_info)
+    df = load_df("user_info")
 
     # Find the matching user row
     filtered = df[df["user_id"] == st.session_state.user]
@@ -901,8 +884,8 @@ elif st.session_state.page == "my_profile":
         for key, val in updated.items():
             df.at[user_idx, key] = val
 
-        ws_info.clear()
-        ws_info.update([df.columns.values.tolist()] + df.values.tolist())
+        "user_info".clear()
+        "user_info".update([df.columns.values.tolist()] + df.values.tolist())
 
         st.success("Profile updated!")
         st.session_state.page = "profile"
@@ -915,7 +898,7 @@ elif st.session_state.page == "my_profile":
 
 
 elif st.session_state.page == "chat":
-    active_chat = get_data("UserInfo", st.session_state.active_chat)
+    active_chat = get_data("user_info", st.session_state.active_chat)
     partner = active_chat["user_id"]
     partner_name = f"{active_chat["first_name"]} {active_chat["last_name"]}"
     me = st.session_state.user
