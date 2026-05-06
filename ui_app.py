@@ -534,30 +534,32 @@ elif st.session_state.page == "matches":
 
         with st.container():
             st.markdown(f"### 👤 {user.first_name} {user.last_name}")
-            st.metric("Compatibility", f"{round(score*100)}%")
 
-            col1, col2, col3 = st.columns([2,1,1])
+            col1, col2, col3, col4 = st.columns([2,2,1,1])
 
             with col1:
+                st.metric("Compatibility", f"{round(score*100)}%")
+            
+            with col2:
                 if status == "match":
-                    col1.success("Matched ✅")
+                    col2.success("Matched ✅")
 
                 elif status == "incoming":
-                    if col1.button("Accept", key=f"match_accept_{uid}"):
+                    if col2.button("Accept", key=f"match_accept_{uid}"):
                         log_action(me, uid, "accept_request")
                         st.rerun()
 
                 else:
-                    col1.info("Pending 📩")
+                    col2.info("Pending 📩")
 
-            with col2:
-                if col2.button("View", key=f"match_view_{uid}"):
+            with col3:
+                if col3.button("View", key=f"match_view_{uid}"):
                     st.session_state.view = uid
                     st.session_state.page = "profile"
                     st.rerun()
 
-            with col3:
-                if col3.button("Hide", key=f"match_hide_{uid}"):
+            with col4:
+                if col4.button("Hide", key=f"match_hide_{uid}"):
                     log_action(me, uid, "hide_user")
                     st.rerun()
 
