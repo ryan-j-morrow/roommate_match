@@ -369,19 +369,33 @@ if st.session_state.user:
     st.markdown("""
         <style>
 
-        /* ✅ Hide default Streamlit header */
-        header {
-            visibility: hidden;
+        /* --------------------------
+        GLOBAL RESET + HEADER
+        -------------------------- */
+
+        /* Hide Streamlit default top bar */
+        [data-testid="stHeader"] {
+            display: none;
         }
 
-        /* ✅ Make FIRST block (your nav) sticky */
-        section.main div.block-container > div:first-child {
+        /* Remove top whitespace */
+        .block-container {
+            padding-top: 110px !important;  /* pushes content below fixed nav */
+        }
+
+
+        /* --------------------------
+        STICKY NAV (ROBUST TARGET)
+        -------------------------- */
+
+        /* First columns block = your navbar */
+        div[data-testid="stHorizontalBlock"]:first-of-type {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
 
-            z-index: 100000;
+            z-index: 9999;
 
             background: var(--background-color);
 
@@ -391,49 +405,80 @@ if st.session_state.user:
             height: 95px;
 
             display: flex;
-            align-items: center;  /* ✅ vertical center EVERYTHING */
+            align-items: center;
+            gap: 10px;
         }
 
-        /* ✅ Push page content below nav */
-        section.main div.block-container > div:nth-child(2) {
-            margin-top: 110px;
-        }
 
-        /* ✅ Title styling (FIXED color + alignment) */
+        /* --------------------------
+        TYPOGRAPHY
+        -------------------------- */
+
         .app-title {
             font-size: 2.8rem;
             font-weight: 700;
-            color: var(--primaryColor) !important;  /* ✅ correct variable */
+            color: var(--primaryColor) !important;
             margin: 0;
             line-height: 1;
         }
 
-        /* ✅ Force ALL Streamlit columns to align vertically */
+        /* Remove default heading spacing */
+        h1, h2, h3 {
+            margin: 0 !important;
+        }
+
+
+        /* --------------------------
+        COLUMN ALIGNMENT FIXES
+        -------------------------- */
+
+        /* Vertically center everything inside columns */
         div[data-testid="column"] {
             display: flex;
             align-items: center;
         }
 
-        /* ✅ Ensure logo aligns nicely */
+        /* Ensure inner wrappers behave */
+        div[data-testid="column"] > div {
+            width: 100%;
+        }
+
+
+        /* --------------------------
+        IMAGE (LOGO)
+        -------------------------- */
+
         .stImage img {
             display: block;
         }
 
-        /* ✅ Remove weird heading spacing */
-        h1 {
-            margin: 0 !important;
-        }
 
-        /* ✅ Fix Streamlit button vertical offset */
+        /* --------------------------
+        BUTTON POLISH
+        -------------------------- */
+
+        /* Remove vertical misalignment */
         button {
             margin-top: 0 !important;
             margin-bottom: 0 !important;
         }
 
-        /* ✅ Optional: make buttons visually centered cleaner */
-        div[data-testid="column"] > div {
-            width: 100%;
+        /* Optional: make buttons slightly nicer */
+        button[kind="secondary"],
+        button[kind="primary"] {
+            border-radius: 8px;
         }
+
+
+        /* --------------------------
+        DEBUG (enable if needed)
+        -------------------------- */
+
+        /*
+        div[data-testid="stHorizontalBlock"]:first-of-type {
+            outline: 4px solid red;
+        }
+        */
 
         </style>
         """, unsafe_allow_html=True
