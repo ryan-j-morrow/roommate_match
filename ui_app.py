@@ -34,7 +34,7 @@ ws_log = sheet.worksheet("InteractionLog")
 # --------------------------
 # OPTIONS
 # --------------------------
-age_options = [str(i) for i in range(18, 31)]
+age_options = list(range(18, 31))
 gender_options = ['Male','Female','Non-Binary','Other']
 sleep_schedule_options = ['Early bird','Flexible','Night owl']
 cleanliness_level_options = ['Very clean','Average','Messy']
