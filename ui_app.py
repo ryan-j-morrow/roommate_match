@@ -366,15 +366,11 @@ PAGE_SIZE = 10
 
 if st.session_state.user:
 
-    with st.container(vertical_alignment='center'):
-
-
-        st.markdown('<div class="nav-anchor"></div>', unsafe_allow_html=True)
+    with st.container(height=180, vertical_alignment='center'):
 
         sect1, sect2 = st.columns([2, 3])
 
         with sect1:
-            st.markdown('<div style="height:80px;">', unsafe_allow_html=True)
 
             col1, col2 = st.columns([2.5, 10])  # slightly more space for image
 
@@ -388,11 +384,8 @@ if st.session_state.user:
                     """,
                     unsafe_allow_html=True
                 )
-            st.markdown('</div>', unsafe_allow_html=True)
 
         with sect2:
-
-            st.markdown('<div style="height:80px;">', unsafe_allow_html=True)
 
             buf0, nav1, buf1, nav2, buf2, nav3, buf3, nav4, buf4, nav5, buf5 = st.columns(
                 [0.5,1,0.5,1,0.5,1,0.5,1,0.5,1,0.5]
@@ -439,8 +432,6 @@ if st.session_state.user:
                 st.session_state.user = None
                 st.session_state.page = "login"
                 st.rerun()
-
-            st.markdown('</div>', unsafe_allow_html=True)
 
 
 # --------------------------
