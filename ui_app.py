@@ -109,16 +109,64 @@ def is_match(user_a, user_b):
     liked_a_to_b = (
         (logs["user_id_source"] == user_a) &
         (logs["user_id_dest"] == user_b) &
-        (logs["action"] == "like")
+        (logs["action"] == "send_request")
     )
 
     liked_b_to_a = (
         (logs["user_id_source"] == user_b) &
         (logs["user_id_dest"] == user_a) &
-        (logs["action"] == "like")
+        (logs["action"] == "send_request")
     )
 
     return liked_a_to_b.any() and liked_b_to_a.any()
+
+def is_requested(user_a, user_b):
+    logs = load_df(ws_log)
+
+    requested_a_to_b = (
+        (logs["user_id_source"] == user_a) &
+        (logs["user_id_dest"] == user_b) &
+        (logs["action"] == "send_request")
+    )
+
+    requested_b_to_a = (
+        (logs["user_id_source"] == user_b) &
+        (logs["user_id_dest"] == user_a) &
+        (logs["action"] == "send_request")
+    )
+
+    # A requested B, but B did NOT request A
+    return requested_a_to_b.any() and not requested_b_to_a.any()
+
+
+def is_pending(user_a, user_b):
+    logs = load_df(ws_log)
+
+    requested_b_to_a = (
+        (logs["user_id_source"] == user_b) &
+        (logs["user_id_dest"] == user_a) &
+        (logs["action"] == "send_request")
+    )
+
+    requested_a_to_b = (
+        (logs["user_id_source"] == user_a) &
+        (logs["user_id_dest"] == user_b) &
+        (logs["action"] == "send_request")
+    )
+
+    # B requested A, but A did NOT request B
+    return requested_b_to_a.any() and not requested_a_to_b.any()
+
+
+def check_match(user_a, user_b):
+    if is_match(user_a, user_b):
+        return "match"
+    elif is_pending(user_a, user_b):
+        return "pending"
+    elif is_requested(user_a, user_b):
+        return "requested"
+    else:
+        return None
 
 def categorical_similarity(a, b, options):
     if a is None or b is None:
@@ -655,14 +703,14 @@ elif st.session_state.page == "profile":
         me = st.session_state.user
         other = st.session_state.view_user
 
-        state = get_match_state(me, other)
+        state = check_match(me, other)
 
-        if state == "matched":
+        if state == "match":
             st.button("Matched ✅", disabled=True)
 
         elif state == "pending":
             if st.button("Accept ✅"):
-                log_action(me, other, "accept")
+                log_action(me, other, "send_request")
                 st.success("Match confirmed!")
 
         elif state == "requested":
@@ -670,7 +718,7 @@ elif st.session_state.page == "profile":
 
         else:  # "none"
             if st.button("Request ➕"):
-                log_action(me, other, "request")
+                log_action(me, other, "send_request")
                 st.success("Request sent!")
 
 
