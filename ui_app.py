@@ -615,13 +615,13 @@ elif st.session_state.page == "matches":
                     col2.info("Pending 📩")
 
             with col3:
-                if col3.button("View", key=f"match_view_{uid}"):
+                if col3.button("View", key=f"match_view_{uid}", width="stretch"):
                     st.session_state.view_user = uid
                     st.session_state.page = "profile"
                     st.rerun()
 
             with col4:
-                if col4.button("Hide", key=f"match_hide_{uid}"):
+                if col4.button("Hide", key=f"match_hide_{uid}", width="stretch"):
                     log_action(me, uid, "hide_user")
                     st.rerun()
 
