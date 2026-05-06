@@ -92,7 +92,7 @@ def get_match_state(me):
 
     hidden_df = logs[
         (logs.user_id_source == me) &
-        (logs.action == "hide")
+        (logs.action == "hide_user")
     ]
     hidden = set(hidden_df.user_id_dest)
 
@@ -340,41 +340,36 @@ elif st.session_state.page == "finder":
         filters[q] = st.sidebar.multiselect(q, opts)
 
     def passes_filters(user, filters):
-        """
-        Returns True if a candidate user passes all selected filters.
-        
-        user: dict / pd.Series of candidate profile
-        filters: dict of filter criteria selected by current user
-        """
+        for key, value_list in filters.items():
 
-        for key, value in filters.items():
             # Skip empty filters
-            if value is None or value == "" or value == []:
+            if not value_list:
                 continue
 
-            # Skip missing user data
-            if key not in user or user[key] is None:
+            if key not in user or pd.isna(user[key]):
                 return False
 
-            # Special handling for budget (numeric <=)
+            user_val = user[key]
+
+            # --- Budget (numeric <= any selected max) ---
             if key == "max_budget":
                 try:
-                    if float(user[key]) > float(value):
+                    if not any(float(user_val) <= float(v) for v in value_list):
                         return False
                 except:
                     return False
 
-            # Numeric exact match (age if needed)
-            elif key in ["age"]:
+            # --- Age (match any selected ages) ---
+            elif key == "age":
                 try:
-                    if int(user[key]) != int(value):
+                    if str(user_val) not in [str(v) for v in value_list]:
                         return False
                 except:
                     return False
 
-            # General categorical match
+            # --- Categorical ---
             else:
-                if user[key] != value:
+                if str(user_val) not in [str(v) for v in value_list]:
                     return False
 
         return True
@@ -443,7 +438,8 @@ elif st.session_state.page == "finder":
 
             elif uid in received:
                 if col2.button("Accept", key=f"accept_{uid}"):
-                    log_action(me, uid, "accept_request")
+                    log_action(me, uid, "send_request")
+                    st.success("Match accepted!")
                     st.rerun()
 
             elif uid in sent:
@@ -611,8 +607,23 @@ elif st.session_state.page == "my_profile":
 
     with st.form("edit_profile_form"):
         updated = {}
-        for q, opts in questions:
-            updated[q] = st.selectbox(q.replace("_", " ").title(), opts, index=opts.index(user_data[q]))
+        for q, opts in questions:            
+            current_value = user_data.get(q)
+
+            # normalize types
+            opts_str = [str(o) for o in opts]
+            current_str = str(current_value)
+
+            if current_str in opts_str:
+                index = opts_str.index(current_str)
+            else:
+                index = 0  # fallback
+
+            updated[q] = st.selectbox(
+                q.replace("_", " ").title(),
+                opts,
+                index=index
+            )
 
         save = st.form_submit_button("Save Changes")
 
