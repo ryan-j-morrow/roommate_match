@@ -379,17 +379,10 @@ if st.session_state.user:
             
             with col2:                
                 st.markdown(
-                        """
-                        <style>
-                        .app-title {
-                            color: #7A5FFF;
-                        }
-                        </style>
-
-                        <h1 class="app-title">:primary[RoomMatch]</h1>
-                        """,
-                        unsafe_allow_html=True
-                    )
+                    """
+                    :primary[RoomMatch]</h1>
+                    """
+                )
 
 
 
