@@ -374,27 +374,51 @@ if st.session_state.user:
             top: 0;
             left: 0;
             right: 0;
-
             z-index: 9999;
 
             background: var(--background-color);
-            padding: 10px 20px;
+            padding: 12px 25px;
             border-bottom: 1px solid rgba(150,150,150,0.2);
+
+            display: flex;
+            align-items: center;      /* ✅ vertical center */
+            justify-content: space-between;
         }
 
-        /* ✅ This prevents content from hiding UNDER navbar */
+        /* Prevent content hiding */
         .block-container {
             padding-top: 110px !important;
         }
 
-        /* ✅ Fix title color */
-        .app-title {
-            font-size: 2.8rem;
-            font-weight: 700;
-            color: var(--primary-color) !important;
-            margin: 0;
+        /* App header wrapper */
+        .app-header {
+            display: flex;
+            align-items: center;      /* ✅ vertical center */
+            gap: 12px;
         }
-        </style>`
+
+        /* Title */
+        .app-title {
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: var(--primary-color) !important; /* ✅ use theme color */
+            margin: 0;
+            line-height: 1;
+        }
+
+        /* Center nav buttons vertically */
+        .nav-buttons {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Make images align nicely */
+        .stImage img {
+            display: block;
+            margin: auto;
+        }
+        </style>
         """,
         unsafe_allow_html=True
     )
@@ -416,9 +440,7 @@ if st.session_state.user:
             with col2:
                 st.markdown(
                     """
-                    <div class="app-header">
-                        <h1 class="app-title">RoomMatch</h1>
-                    </div>
+                    <h1 class="app-title">RoomMatch</h1>
                     """,
                     unsafe_allow_html=True
                 )
@@ -787,7 +809,7 @@ elif st.session_state.page == "finder":
             st.divider()
 
     # ---- Pagination controls ----
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = st.columns([1,10,1])
 
     if col1.button("Prev", disabled=st.session_state.page_idx == 0):
         st.session_state.page_idx -= 1
