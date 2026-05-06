@@ -177,19 +177,22 @@ elif st.session_state.page == "signup":
     weights = []
 
     st.subheader("Preferences")
-
-    for q, opts in questions:
+    
+    for i, (q, opts) in enumerate(questions):
         col1, col2, col3 = st.columns(3)
 
-        ans = col1.selectbox(q, opts)
-        imp = col2.selectbox("Importance", list(range(11)))
-        nn = col3.checkbox("Non-negotiable")
+        prefix = f"{st.session_state.page}_{i}_{q}"
+
+        ans = col1.selectbox(q, opts, key=f"{prefix}_ans")
+        imp = col2.selectbox("Importance", list(range(11)), key=f"{prefix}_imp")
+        nn = col3.checkbox("Non-negotiable", key=f"{prefix}_nn")
 
         if nn:
             imp = -1
 
         responses.append(ans)
         weights.append(imp)
+
 
     if st.button("Submit"):
         ws_info.append_row([user_id,password,first,last,phone,email] + responses)
