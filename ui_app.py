@@ -6,67 +6,7 @@ import datetime
 from supabase import create_client, Client
 
 
-# --------------------------
-# THEME / STYLING
-# --------------------------
-PRIMARY_COLOR = "#BFA2FF"   # light purple
-SECONDARY_COLOR = "#F5F0FF"
-ACCENT_COLOR = "#7A5FFF"
-TEXT_COLOR = "#1F1F1F"
-MUTED_TEXT = "#6E6E6E"
-BORDER_RADIUS = "10px"
 
-st.set_page_config(
-    page_title="Roommate Matcher",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
-
-st.markdown(f"""
-<style>
-    html, body, [data-testid="stAppViewContainer"] {{
-        background-color: {SECONDARY_COLOR};
-        color: {TEXT_COLOR};
-        font-family: 'Inter', sans-serif;
-    }}
-
-    h1, h2, h3 {{
-        color: {ACCENT_COLOR};
-        font-weight: 600;
-    }}
-
-    .stButton > button {{
-        background-color: {PRIMARY_COLOR};
-        color: black;
-        border-radius: {BORDER_RADIUS};
-        padding: 0.5rem 1rem;
-        border: none;
-    }}
-
-    .stButton > button:hover {{
-        background-color: {ACCENT_COLOR};
-        color: white;
-    }}
-
-    .card {{
-        background-color: white;
-        padding: 1rem;
-        border-radius: {BORDER_RADIUS};
-        box-shadow: 0px 2px 6px rgba(0,0,0,0.05);
-        margin-bottom: 1rem;
-    }}
-
-    .section-title {{
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }}
-
-    hr {{
-        border: 1px solid #E4D9FF;
-    }}
-</style>
-""", unsafe_allow_html=True)
 
 # --------------------------
 # GOOGLE SHEETS CONNECTION
