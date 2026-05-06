@@ -759,7 +759,7 @@ elif st.session_state.page == "matches":
             with col5:
                 if status == "match":
                     if check_match(st.session_state.user, uid) == "match":
-                        if st.button("Message", key=f"msg_{uid}"):
+                        if st.button("Message", key=f"msg_{uid}", width='stretch'):
                             st.session_state.active_chat = uid
                             st.session_state.page = "chat"
                 
@@ -786,7 +786,7 @@ elif st.session_state.page == "profile":
         with col1:
             st.subheader("Contact Info")
         with col2:
-            if st.button("Message", key=f"msg_{st.session_state.view_user}"):
+            if st.button("Message", key=f"msg_{st.session_state.view_user}", width='stretch'):
                 st.session_state.active_chat = st.session_state.view_user
                 st.session_state.page = "chat"
         
