@@ -5,6 +5,69 @@ import json
 import datetime
 from supabase import create_client, Client
 
+
+# --------------------------
+# THEME / STYLING
+# --------------------------
+PRIMARY_COLOR = "#BFA2FF"   # light purple
+SECONDARY_COLOR = "#F5F0FF"
+ACCENT_COLOR = "#7A5FFF"
+TEXT_COLOR = "#1F1F1F"
+MUTED_TEXT = "#6E6E6E"
+BORDER_RADIUS = "10px"
+
+st.set_page_config(
+    page_title="Roommate Matcher",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+st.markdown(f"""
+<style>
+    html, body, [data-testid="stAppViewContainer"] {{
+        background-color: {SECONDARY_COLOR};
+        color: {TEXT_COLOR};
+        font-family: 'Inter', sans-serif;
+    }}
+
+    h1, h2, h3 {{
+        color: {ACCENT_COLOR};
+        font-weight: 600;
+    }}
+
+    .stButton > button {{
+        background-color: {PRIMARY_COLOR};
+        color: black;
+        border-radius: {BORDER_RADIUS};
+        padding: 0.5rem 1rem;
+        border: none;
+    }}
+
+    .stButton > button:hover {{
+        background-color: {ACCENT_COLOR};
+        color: white;
+    }}
+
+    .card {{
+        background-color: white;
+        padding: 1rem;
+        border-radius: {BORDER_RADIUS};
+        box-shadow: 0px 2px 6px rgba(0,0,0,0.05);
+        margin-bottom: 1rem;
+    }}
+
+    .section-title {{
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }}
+
+    hr {{
+        border: 1px solid #E4D9FF;
+    }}
+</style>
+""", unsafe_allow_html=True)
+
 # --------------------------
 # GOOGLE SHEETS CONNECTION
 # --------------------------
@@ -353,28 +416,26 @@ PAGE_SIZE = 10
 
 if st.session_state.user:
     # Top navigation bar using columns
-    col1, col2, col4, col5 = st.columns([1,1,1,1])
+    with st.container():
+        nav1, nav2, nav3, nav4, nav5 = st.columns(5)
 
-    with col1:
-        if st.button("Roommate Finder", width='stretch'):
+        if nav1.button("Finder"):
             st.session_state.page = "finder"
-    with col2:
-        if st.button("Matches", width='stretch'):
+            st.rerun()
+        if nav2.button("Matches"):
             st.session_state.page = "matches"
-
-    #with col3:
-    #    if st.button("Profile"):
-    #        st.session_state.page = "profile"
-
-    with col4:
-        if st.button("My Profile", width='stretch'):
+            st.rerun()
+        if nav3.button("Messages"):
+            st.session_state.page = "chat"
+            st.rerun()
+        if nav4.button("Profile"):
             st.session_state.page = "my_profile"
-
-    with col5:
-        if st.button("Logout", width='stretch'):
+            st.rerun()
+        if nav5.button("Logout"):
             st.session_state.user = None
             st.session_state.page = "login"
             st.rerun()
+
 
 
 
@@ -382,7 +443,10 @@ if st.session_state.user:
 # LOGIN
 # --------------------------
 if st.session_state.page == "login":
-    st.title("Roommate Matcher 🏠")
+    st.title("Log-In")
+    st.markdown("Please enter your user_id and password to sign in or create an account today.")
+    st.markdown("---")
+
 
     with st.form("login_form", clear_on_submit=False):
         user_id = st.text_input("User_ID")
@@ -409,7 +473,10 @@ if st.session_state.page == "login":
 # SIGNUP
 # --------------------------
 elif st.session_state.page == "signup":
-    st.header("Create Account")
+    st.title("Create Account")
+    st.markdown("Please fill in all fields to create your account and start meeting your future roommates!")
+    st.markdown("---")
+
 
     with st.form("signup_form"):
         responses = {}
@@ -518,6 +585,9 @@ elif st.session_state.page == "signup":
 elif st.session_state.page == "finder":
 
     st.title("Find Roommates")
+    st.markdown("Find your most compatible future roommates and start requesting to chat with them.")
+    st.markdown("---")
+
 
     df_info = load_df("user_info")
     df_weights_long = load_df("user_weights")
@@ -691,6 +761,9 @@ elif st.session_state.page == "finder":
 # --------------------------
 elif st.session_state.page == "matches":
     st.title("Your Matches")
+    st.markdown("")
+    st.markdown("---")
+
 
     df_info = load_df("user_info")
     df_weights_long = load_df("user_weights")
@@ -801,6 +874,9 @@ elif st.session_state.page == "profile":
     
     st.title(f"{user_data["first_name"]} {user_data["last_name"]}")
     st.caption(f"User_ID: {st.session_state.view_user}")
+    st.markdown("---")
+
+    
 
     cola, colb, colc, cold = st.columns([1,1,1,1])
 
@@ -888,8 +964,10 @@ elif st.session_state.page == "profile":
 # --------------------------
 
 elif st.session_state.page == "my_profile":
-    st.title("My Profile ⚙️")
+    st.title("Edit Your Profile")
+    st.markdown("")
     st.markdown("---")
+
 
     user_id = st.session_state.user
 
@@ -1076,7 +1154,9 @@ elif st.session_state.page == "chat":
         st.stop()
 
     st.title(f"Chat with {partner_name}")
-    st.text("")
+    st.markdown("")
+    st.markdown("---")
+
 
     col1, col2 = st.columns([3,1])
 
