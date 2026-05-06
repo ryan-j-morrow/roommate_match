@@ -366,62 +366,71 @@ PAGE_SIZE = 10
 
 if st.session_state.user:
 
-    st.markdown(
-        """
+    st.markdown("""
         <style>
+
+        /* Hide default streamlit header */
+        header {visibility: hidden;}
+
+        /* Prevent overlap */
+        section.main > div {
+            padding-top: 95px !important;
+        }
+
+        /* Navbar */
         .sticky-nav {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            z-index: 9999;
+
+            z-index: 100000;
 
             background: var(--background-color);
-            padding: 12px 25px;
+            padding: 10px 30px;
+
             border-bottom: 1px solid rgba(150,150,150,0.2);
 
-            display: flex;
-            align-items: center;      /* ✅ vertical center */
-            justify-content: space-between;
-        }
+            height: 90px;
 
-        /* Prevent content hiding */
-        .block-container {
-            padding-top: 110px !important;
-        }
-
-        /* App header wrapper */
-        .app-header {
             display: flex;
-            align-items: center;      /* ✅ vertical center */
-            gap: 12px;
+            align-items: center;
         }
 
         /* Title */
         .app-title {
-            font-size: 2.4rem;
+            font-size: 2.8rem;
             font-weight: 700;
-            color: var(--primary-color) !important; /* ✅ use theme color */
+            color: var(--primaryColor) !important;
             margin: 0;
             line-height: 1;
         }
 
-        /* Center nav buttons vertically */
-        .nav-buttons {
+        /* Fix column alignment */
+        div[data-testid="column"] {
             display: flex;
             align-items: center;
-            gap: 10px;
         }
 
-        /* Make images align nicely */
+        /* Clean image alignment */
         .stImage img {
             display: block;
-            margin: auto;
         }
+
+        /* Remove spacing issues */
+        h1 {
+            margin: 0 !important;
+        }
+
+        button {
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+        }
+
         </style>
-        """,
-        unsafe_allow_html=True
+        """, unsafe_allow_html=True
     )
+
 
     st.markdown('<div class="sticky-nav">', unsafe_allow_html=True)
     with st.container():
