@@ -650,6 +650,30 @@ elif st.session_state.page == "profile":
     else:
         st.info("Match with this user to see their contact info.")
 
+    cola, colb, colc, cold = st.columns([1,1,1,1])
+    with cold:
+        me = st.session_state.user
+        other = st.session_state.view_user
+
+        state = get_match_state(me, other)
+
+        if state == "matched":
+            st.button("Matched ✅", disabled=True)
+
+        elif state == "pending":
+            if st.button("Accept ✅"):
+                log_action(me, other, "accept")
+                st.success("Match confirmed!")
+
+        elif state == "requested":
+            st.button("Requested ⏳", disabled=True)
+
+        else:  # "none"
+            if st.button("Request ➕"):
+                log_action(me, other, "request")
+                st.success("Request sent!")
+
+
     col1, col2 = st.columns(2)
 
     with col1:
