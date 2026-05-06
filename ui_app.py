@@ -377,23 +377,20 @@ if st.session_state.user:
             with col1:
                 st.image("logo.png", width=150)  # ✅ bigger logo
             
-            with col2:
+            with col2:                
                 st.markdown(
-                    """
-                    <style>
-                    .app-title {
-                        text-align: center;
-                        color: var(--primary-color);
-                        font-size: 3rem;
-                        font-weight: 700;
-                        margin-bottom: 0;
-                    }
-                    </style>
+                        """
+                        <style>
+                        .app-title {
+                            color: var(--primaryColor);
+                        }
+                        </style>
 
-                    <h1 class="app-title">RoomMatch</h1>
-                    """,
-                    unsafe_allow_html=True
-                )
+                        <h1 class="app-title">RoomMatch</h1>
+                        """,
+                        unsafe_allow_html=True
+                    )
+
 
 
         with sect2:
