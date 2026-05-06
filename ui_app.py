@@ -878,55 +878,118 @@ elif st.session_state.page == "profile":
 # --------------------------
 
 elif st.session_state.page == "my_profile":
-    st.title("Edit Profile")
+    st.title("My Profile ⚙️")
+    st.markdown("---")
 
-    
-    df = load_df("user_info")
+    user_id = st.session_state.user
 
-    # Find the matching user row
-    filtered = df[df["user_id"] == st.session_state.user]
+    # Load current user info
+    user_info = get_data("user_info", user_id)
+    user_prefs = get_data("preferences", user_id)
+    user_weights = get_data("weights", user_id)
 
-    if filtered.empty:
-        st.error("User profile not found. Please log in again.")
-        st.stop()
+    # --------------------------
+    # ACCOUNT SETTINGS
+    # --------------------------
+    st.subheader("Account Settings")
 
-    user_idx = filtered.index[0]
-    user_data = df.loc[user_idx]
+    col1, col2 = st.columns(2)
 
+    with col1:
+        new_username = st.text_input("Username", value=user_info.get("user_id", ""))
 
-    with st.form("edit_profile_form"):
-        updated = {}
-        for q, opts in questions:            
-            current_value = user_data.get(q)
+    with col2:
+        new_password = st.text_input("Password", type="password")
 
-            # normalize types
-            opts_str = [str(o) for o in opts]
-            current_str = str(current_value)
+    if st.button("Update Account"):
+        if new_username:
+            supabase.table("user_info").update({
+                "user_id": new_username,
+                "password": new_password if new_password else user_info["password"]
+            }).eq("user_id", user_id).execute()
 
-            if current_str in opts_str:
-                index = opts_str.index(current_str)
-            else:
-                index = 0  # fallback
+            st.success("✅ Account updated!")
 
-            updated[q] = st.selectbox(
-                q.replace("_", " ").title(),
-                opts,
-                index=index
+    st.markdown("---")
+
+    # --------------------------
+    # PREFERENCES
+    # --------------------------
+    st.subheader("Preferences")
+
+    updated_prefs = {}
+
+    cols = st.columns(3)
+
+    for i, (key, options) in enumerate(questions):
+        with cols[i % 3]:
+            updated_prefs[key] = st.selectbox(
+                key.replace("_", " ").title(),
+                options,
+                index=options.index(user_prefs.get(key)) if user_prefs and user_prefs.get(key) in options else 0
             )
 
-        save = st.form_submit_button("Save Changes")
+    if st.button("Save Preferences"):
+        supabase.table("preferences").upsert({
+            "user_id": user_id,
+            **updated_prefs
+        }).execute()
 
-    if save:
-        for key, val in updated.items():
-            df.at[user_idx, key] = val
+        st.success("✅ Preferences updated!")
 
-        "user_info".clear()
-        "user_info".update([df.columns.values.tolist()] + df.values.tolist())
+    st.markdown("---")
 
-        st.success("Profile updated!")
-        st.session_state.page = "profile"
-        st.rerun()
+    # --------------------------
+    # IMPORTANCE / NON-NEGOTIABLES
+    # --------------------------
+    st.subheader("Importance & Non-Negotiables")
 
+    st.caption("Set how important each category is, and mark must-haves ✅")
+
+    updated_weights = {}
+    non_negotiables = {}
+
+    for key, _ in questions:
+        col1, col2 = st.columns([3, 1])
+
+        with col1:
+            updated_weights[key] = st.slider(
+                f"{key.replace('_',' ').title()} Importance",
+                0, 10,
+                int(user_weights.get(key, 5)) if user_weights else 5
+            )
+
+        with col2:
+            non_negotiables[key] = st.checkbox(
+                "Must",
+                value=bool(user_weights.get(f"{key}_must", False)) if user_weights else False,
+                key=f"must_{key}"
+            )
+
+    if st.button("Save Importance Settings"):
+        data = {"user_id": user_id}
+
+        for key in updated_weights:
+            data[key] = updated_weights[key]
+            data[f"{key}_must"] = non_negotiables[key]
+
+        supabase.table("weights").upsert(data).execute()
+
+        st.success("✅ Importance settings saved!")
+
+    st.markdown("---")
+
+    # --------------------------
+    # PROFILE PREVIEW
+    # --------------------------
+    st.subheader("Profile Preview 👀")
+
+    st.json({
+        "Account": new_username,
+        "Preferences": updated_prefs,
+        "Importance": updated_weights,
+        "Must-Haves": non_negotiables
+    })
 
 # --------------------------
 # CHAT
