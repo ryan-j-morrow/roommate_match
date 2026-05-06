@@ -166,41 +166,29 @@ if st.session_state.page == "login":
 elif st.session_state.page == "signup":
     st.header("Create Account")
 
-    user_id = st.text_input("User ID")
-    password = st.text_input("Password")
-    first = st.text_input("First Name")
-    last = st.text_input("Last Name")
-    phone = st.text_input("Phone")
-    email = st.text_input("Email")
+    with st.form("signup_form"):
+        responses = {}
 
-    responses = []
-    weights = []
+        for q, options in questions:
+            responses[q] = st.selectbox(q.replace("_", " ").title(), options)
 
-    st.subheader("Preferences")
-    
-    for i, (q, opts) in enumerate(questions):
-        col1, col2, col3 = st.columns(3)
+        col1, col2 = st.columns(2)
 
-        prefix = f"{st.session_state.page}_{i}_{q}"
+        with col1:
+            submitted = st.form_submit_button("✅ Submit")
 
-        ans = col1.selectbox(q, opts, key=f"{prefix}_ans")
-        imp = col2.selectbox("Importance", list(range(11)), key=f"{prefix}_imp")
-        nn = col3.checkbox("Non-negotiable", key=f"{prefix}_nn")
+        with col2:
+            cancel = st.form_submit_button("⬅ Cancel")
 
-        if nn:
-            imp = -1
+        if submitted:
+            st.success("Account created!")
+            # TODO: save responses to Google Sheets
+            st.session_state.page = "matches"
+            st.rerun()
 
-        responses.append(ans)
-        weights.append(imp)
-
-
-    if st.button("Submit"):
-        ws_info.append_row([user_id,password,first,last,phone,email] + responses)
-        ws_weights.append_row([user_id] + weights)
-
-        st.success("Account created!")
-        st.session_state.page = "login"
-        st.rerun()
+        if cancel:
+            st.session_state.page = "login"
+            st.rerun()
 
 # --------------------------
 # MATCHES
