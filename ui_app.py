@@ -914,7 +914,7 @@ elif st.session_state.page == "chat":
         st.stop()
 
     st.title(f"Chat with {partner_name}")
-    st.markdown("#### ")
+    st.text("")
 
     col1, col2 = st.columns([3,1])
 
@@ -924,7 +924,7 @@ elif st.session_state.page == "chat":
             st.session_state.page = "profile"
             st.rerun()
     
-    st.markdown("#### ")
+    st.text("")
 
     msgs = load_messages(me, partner)
 
@@ -959,7 +959,7 @@ elif st.session_state.page == "chat":
             """, unsafe_allow_html=True)
 
     # Input box
-    st.markdown("#### ")
+    st.text("")
 
     with st.form("send_msg", clear_on_submit=True):
         msg = st.text_input("Message")
