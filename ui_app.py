@@ -372,26 +372,44 @@ if st.session_state.user:
         st.markdown(
             """
             <style>
+            /* Force overall navbar height */
+            div[data-testid="stHorizontalBlock"] {
+                min-height: 100px;
+                align-items: center !important;
+            }
+
+            /* Force every column to vertically center its content */
+            div[data-testid="column"] {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+
+            /* Prevent inner wrapper from breaking alignment */
+            div[data-testid="column"] > div {
+                width: 100%;
+                display: flex;
+                align-items: center !important;
+                justify-content: center;
+            }
+
+            /* Left-align only the logo/title section */
+            div[data-testid="column"]:first-child > div {
+                justify-content: flex-start;
+            }
+
             .app-header {
                 display: flex;
                 align-items: center;
-                gap: 12px;
-                height: 100%;
+                gap: 16px;
             }
 
             .app-title {
-                font-size: 2.6rem;  /* slightly bigger */
+                font-size: 2.8rem;
                 font-weight: 700;
                 color: var(--primary-color);
                 margin: 0;
                 line-height: 1;
-            }
-
-            /* Vertically center EVERYTHING inside columns */
-            div[data-testid="column"] > div {
-                display: flex;
-                align-items: center;
-                justify-content: center;
             }
             </style>
             """,
@@ -402,10 +420,10 @@ if st.session_state.user:
 
         with sect1:
 
-            col1, col2 = st.columns([1.5, 10])  # slightly more space for image
+            col1, col2 = st.columns([2.5, 10])  # slightly more space for image
 
             with col1:
-                st.image("logo.png", width=120)  # ✅ bigger logo
+                st.image("logo.png", width=150)  # ✅ bigger logo
 
             with col2:
                 st.markdown(
