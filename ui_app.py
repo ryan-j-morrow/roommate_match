@@ -74,30 +74,30 @@ def log_action(src, dest, action):
 def get_match_state(me):
     logs = load_df(ws_log)
 
-    if logs.empty:
-        return {"sent": set(), "received": set(), "mutual": set(), "hidden": set()}
+    sent = logs[
+        (logs.user_id_source == me) &
+        (logs.action == "send_request")
+    ]
 
-    sent = logs[(logs.src == me) & (logs.action == "send_request")]
-    received = logs[(logs.dest == me) & (logs.action == "send_request")]
+    received = logs[
+        (logs.user_id_dest == me) &
+        (logs.action == "send_request")
+    ]
 
-    accepted = logs[logs.action == "accept_request"]
+    mutual = set(sent.user_id_dest).intersection(
+        set(received.user_id_source)
+    )
 
-    # Mutual = either:
-    # 1. both sent requests
-    # 2. someone accepted
-    mutual = set(sent.dest).intersection(set(received.src))
-
-    for _, row in accepted.iterrows():
-        mutual.add(row.src)
-        mutual.add(row.dest)
-
-    hidden = logs[(logs.src == me) & (logs.action == "hide_user")]
+    hidden = logs[
+        (logs.user_id_source == me) &
+        (logs.action == "hide")
+    ]
 
     return {
-        "sent": set(sent.dest),
-        "received": set(received.src),
+        "sent": sent,
+        "received": received,
         "mutual": mutual,
-        "hidden": set(hidden.dest)
+        "hidden": hidden
     }
 
 def categorical_similarity(a, b, options):
@@ -188,24 +188,31 @@ PAGE_SIZE = 10
 # --------------------------
 
 if st.session_state.user:
-    st.sidebar.title("Navigation")
+    # Top navigation bar using columns
+    col1, col2, col3, col4, col5 = st.columns(5)
 
-    page_choice = st.sidebar.radio(
-        "Go to",
-        ["Matches", "Roommate Finder", "Profile", "My Profile"]
-    )
+    with col1:
+        if st.button("Matches"):
+            st.session_state.page = "matches"
 
-    if page_choice == "Matches":
-        st.session_state.page = "matches"
-    elif page_choice == "Roommate Finder":
-        st.session_state.page = "finder"
-    elif page_choice == "Profile":
-        st.session_state.page = "profile"
+    with col2:
+        if st.button("Roommate Finder"):
+            st.session_state.page = "finder"
 
-    if st.sidebar.button("Logout"):
-        st.session_state.user = None
-        st.session_state.page = "login"
-        st.rerun()
+    with col3:
+        if st.button("Profile"):
+            st.session_state.page = "profile"
+
+    with col4:
+        if st.button("My Profile"):
+            st.session_state.page = "my_profile"
+
+    with col5:
+        if st.button("Logout"):
+            st.session_state.user = None
+            st.session_state.page = "login"
+            st.rerun()
+
 
 
 # --------------------------
