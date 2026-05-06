@@ -365,38 +365,47 @@ PAGE_SIZE = 10
 # --------------------------
 
 if st.session_state.user:
-    # Top navigation bar using columns
-
 
     with st.container():
-        sect1, sect2 = st.columns([1,2])
-        with sect1:
-            # Inject CSS for primary color + alignment
-            st.markdown(
-                """
-                <style>
-                .app-header {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                }
-                .app-title {
-                    font-size: 2.2rem;
-                    font-weight: 700;
-                    color: var(--primary-color); /* Uses Streamlit theme color */
-                    margin: 0;
-                    line-height: 1;
-                }
-                </style>
-                """,
-                unsafe_allow_html=True
-            )
 
-            # Layout
-            col1, col2 = st.columns([1, 10])
+        # Inject improved CSS
+        st.markdown(
+            """
+            <style>
+            .app-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                height: 100%;
+            }
+
+            .app-title {
+                font-size: 2.6rem;  /* slightly bigger */
+                font-weight: 700;
+                color: var(--primary-color);
+                margin: 0;
+                line-height: 1;
+            }
+
+            /* Vertically center EVERYTHING inside columns */
+            div[data-testid="column"] > div {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+
+        sect1, sect2 = st.columns([1, 2])
+
+        with sect1:
+
+            col1, col2 = st.columns([1.5, 10])  # slightly more space for image
 
             with col1:
-                st.image("logo.png", use_container_width=True)
+                st.image("logo.png", width=120)  # ✅ bigger logo
 
             with col2:
                 st.markdown(
@@ -408,9 +417,10 @@ if st.session_state.user:
                     unsafe_allow_html=True
                 )
 
-
         with sect2:
-            buf0, nav1, buf1, nav2, buf2, nav3, buf3, nav4, buf4, nav5, buf5 = st.columns(11)
+            buf0, nav1, buf1, nav2, buf2, nav3, buf3, nav4, buf4, nav5, buf5 = st.columns(
+                [0.5,1,0.5,1,0.5,1,0.5,1,0.5,1,0.5]
+            )
 
             if nav1.button(
                 "Finder",
@@ -431,7 +441,8 @@ if st.session_state.user:
             if nav3.button(
                 "Messages",
                 type="primary" if st.session_state.page == "chat" else "secondary",
-                width='stretch', disabled=st.session_state.page != "chat"
+                width='stretch',
+                disabled=st.session_state.page != "chat"
             ):
                 st.session_state.page = "chat"
                 st.rerun()
@@ -446,13 +457,12 @@ if st.session_state.user:
 
             if nav5.button(
                 "Logout",
-                type="secondary",  # usually keep logout neutral
+                type="secondary",
                 width='stretch'
             ):
                 st.session_state.user = None
                 st.session_state.page = "login"
                 st.rerun()
-
 
 
 # --------------------------
