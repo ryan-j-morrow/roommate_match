@@ -387,7 +387,7 @@ if st.session_state.user:
         if nav3.button(
             "Messages",
             type="primary" if st.session_state.page == "chat" else "secondary",
-            width='stretch'
+            width='stretch', disabled=True
         ):
             st.session_state.page = "chat"
             st.rerun()
