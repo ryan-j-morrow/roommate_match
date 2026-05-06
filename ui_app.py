@@ -55,7 +55,7 @@ def btn(label, **kwargs):
     # default to primary unless explicitly overridden
     if "type" not in kwargs:
         kwargs["type"] = "primary"
-    return btn(label, **kwargs)
+    return st.button(label, **kwargs)
 
 def load_df(table_name):
     response = supabase.table(table_name).select("*").execute()
@@ -412,31 +412,35 @@ if st.session_state.user:
 # LOGIN
 # --------------------------
 if st.session_state.page == "login":
-    st.title("Log-In")
-    st.markdown("Please enter your user_id and password to sign in or create an account today.")
-    st.markdown("---")
+
+    col1, col2, col3 = st.columns([1,1,1])
+
+    with col1:
+        st.title("Log-In")
+        st.markdown("Please enter your user_id and password to sign in or create an account today.")
+        st.markdown("---")
 
 
-    with st.form("login_form", clear_on_submit=False):
-        user_id = st.text_input("User_ID")
-        password = st.text_input("Password", type="password")
-        submit = st.form_submit_button("Sign In")
+        with st.form("login_form", clear_on_submit=False):
+            user_id = st.text_input("User_ID")
+            password = st.text_input("Password", type="password")
+            submit = st.form_submit_button("Sign In")
 
-    if submit:
-        user = authenticate_user(user_id, password)
+        if submit:
+            user = authenticate_user(user_id, password)
 
-        if user:
-            st.session_state.user = user["user_id"]
-            st.success("Login successful")
-            st.session_state.page = "finder"
+            if user:
+                st.session_state.user = user["user_id"]
+                st.success("Login successful")
+                st.session_state.page = "finder"
+                st.rerun()
+            else:
+                st.error("Invalid credentials")
+
+
+        if btn("Create Account", type='secondary'):
+            st.session_state.page = "signup"
             st.rerun()
-        else:
-            st.error("Invalid credentials")
-
-
-    if btn("Create Account", type='secondary'):
-        st.session_state.page = "signup"
-        st.rerun()
 
 # --------------------------
 # SIGNUP
@@ -682,7 +686,7 @@ elif st.session_state.page == "finder":
             st.markdown(f"### 👤 {user.first_name} {user.last_name}")
 
             # --- COMPATIBILITY (big) ---
-            col1, col2, col3, col4 = st.columns([4, 1, 1, 1])
+            buff, col1, col2, col3, col4 = st.columns([2,2, 1, 1, 1])
             col1.metric("Compatibility", f"{round(score * 100)}%")
 
             # --- VIEW PROFILE (NEW BUTTON) ---
@@ -791,7 +795,7 @@ elif st.session_state.page == "matches":
         with st.container():
             st.markdown(f"### 👤 {user.first_name} {user.last_name}")
 
-            col1, col2, col3, col4, col5 = st.columns([4,1,1,1,1])
+            buff, col1, col2, col3, col4, col5 = st.columns([2,2,1,1,1,1])
 
             with col1:
                 st.metric("Compatibility", f"{round(score*100)}%")
