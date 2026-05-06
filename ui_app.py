@@ -366,44 +366,7 @@ PAGE_SIZE = 10
 
 if st.session_state.user:
 
-    with st.container():
-
-        # Inject improved CSS
-
-        st.markdown("""
-            <style>
-            /* Make every column a flex container */
-            div[data-testid="column"] {
-                display: flex;
-                align-items: center !important;   /* ✅ vertical centering */
-            }
-
-            /* Ensure inner elements behave nicely */
-            div[data-testid="column"] > div {
-                width: 100%;
-            }
-
-            /* Keep title vertically centered with logo */
-            .app-title {
-                color: var(--primary-color);
-                font-size: 42px;
-                font-weight: 700;
-                margin: 0;
-                display: flex;
-                align-items: center;
-                height: 100%;
-            }
-
-            /* Ensure buttons are vertically centered */
-            .stButton {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                height: 100%;
-            }
-            </style>
-            """, unsafe_allow_html=True
-        )
+    with st.container(vertical_alignment='center'):
 
 
         st.markdown('<div class="nav-anchor"></div>', unsafe_allow_html=True)
