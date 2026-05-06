@@ -16,7 +16,14 @@ def connect_gsheet():
     ]
     
     
-    creds_dict = json.loads(st.secrets["CREDS_JSON"])
+    
+    raw = st.secrets["CREDS_JSON"]
+
+    # 🔧 Convert real newlines → escaped ones
+    fixed = raw.replace("\n", "\\n")
+
+    creds_dict = json.loads(fixed)
+
 
     creds = Credentials.from_service_account_info(
         creds_dict,
