@@ -366,26 +366,42 @@ PAGE_SIZE = 10
 
 if st.session_state.user:
 
+    st.markdown('<div class="sticky-nav">', unsafe_allow_html=True)
     with st.container():
 
         # Inject improved CSS
         st.markdown(
             """
             <style>
-            /* Force overall navbar height */
-            div[data-testid="stHorizontalBlock"] {
-                min-height: 100px;
-                align-items: center !important;
+            /* --- STICKY NAVBAR WRAPPER --- */
+            .sticky-nav {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 9999;
+                background: var(--background-color);
+                padding: 10px 20px;
+                border-bottom: 1px solid rgba(150,150,150,0.2);
             }
 
-            /* Force every column to vertically center its content */
+            /* Push page content down so it doesn't hide under navbar */
+            .block-container {
+                padding-top: 120px !important;
+            }
+
+            /* Ensure full height alignment */
+            div[data-testid="stHorizontalBlock"] {
+                align-items: center !important;
+                min-height: 100px;
+            }
+
             div[data-testid="column"] {
                 display: flex !important;
                 align-items: center !important;
                 justify-content: center !important;
             }
 
-            /* Prevent inner wrapper from breaking alignment */
             div[data-testid="column"] > div {
                 width: 100%;
                 display: flex;
@@ -393,7 +409,7 @@ if st.session_state.user:
                 justify-content: center;
             }
 
-            /* Left-align only the logo/title section */
+            /* Keep logo/title left aligned */
             div[data-testid="column"]:first-child > div {
                 justify-content: flex-start;
             }
@@ -416,7 +432,7 @@ if st.session_state.user:
             unsafe_allow_html=True
         )
 
-        sect1, sect2 = st.columns([1, 2])
+        sect1, sect2 = st.columns([2, 3])
 
         with sect1:
 
@@ -429,7 +445,7 @@ if st.session_state.user:
                 st.markdown(
                     """
                     <div class="app-header">
-                        <h1 class="app-title">Roommate Matcher</h1>
+                        <h1 class="app-title">RoomMatch</h1>
                     </div>
                     """,
                     unsafe_allow_html=True
@@ -481,6 +497,8 @@ if st.session_state.user:
                 st.session_state.user = None
                 st.session_state.page = "login"
                 st.rerun()
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # --------------------------
