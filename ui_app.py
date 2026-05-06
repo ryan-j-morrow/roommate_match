@@ -254,6 +254,17 @@ elif st.session_state.page == "signup":
         weights = {}
         non_negotiable = {}
 
+        
+        user_id = st.text_input("User ID")
+        password = st.text_input("Password", type="password")
+        first_name = st.text_input("First Name")
+        last_name = st.text_input("Last Name")
+        phone = st.text_input("Phone Number")
+        email = st.text_input("Email")
+
+        st.subheader("Preferences")
+
+
         for q, options in questions:
             st.subheader(q.replace("_", " ").title())
 
@@ -277,22 +288,34 @@ elif st.session_state.page == "signup":
         colA, colB = st.columns(2)
 
         with colA:
-            submitted = st.form_submit_button("✅ Submit")
+            submitted = st.form_submit_button("✅ Sign Up")
 
         with colB:
             cancel = st.form_submit_button("⬅ Cancel")
 
+
         if submitted:
-            st.success("Account created!")
 
-            # Store everything in session (or send to Sheets)
-            st.session_state.responses = responses
-            st.session_state.weights = weights
-            st.session_state.non_negotiable = non_negotiable
+            existing_users = load_df(ws_info)
 
-            # (Later: save to Google Sheets)
-            st.session_state.page = "matches"
-            st.rerun()
+            # Check duplicate user_id
+            if not existing_users.empty and user_id in existing_users.get("user_id", []).values:
+                st.error("User ID already exists.")
+            else:
+                # Save EVERYTHING in one row
+                ws_info.append_row([
+                    user_id,
+                    password,
+                    first_name,
+                    last_name,
+                    phone,
+                    email,
+                    *responses.values()
+                ])
+
+                st.success("Account created successfully!")
+                st.session_state.page = "login"
+
 
         if cancel:
             st.session_state.page = "login"
