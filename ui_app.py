@@ -366,7 +366,7 @@ PAGE_SIZE = 10
 
 if st.session_state.user:
 
-    with st.container(height=180, vertical_alignment='center', border=None):
+    with st.container(border=None, vertical_alignment='center'):
 
         sect1, sect2 = st.columns([2, 3], vertical_alignment='center')
 
