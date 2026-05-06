@@ -30,6 +30,7 @@ sheet = client.open("roommate_match_demo")
 ws_info = sheet.worksheet("UserInfo")
 ws_weights = sheet.worksheet("UserWeights")
 ws_log = sheet.worksheet("InteractionLog")
+ws_messages = sheet.worksheet("MessageLog")
 
 # --------------------------
 # OPTIONS
@@ -236,6 +237,51 @@ def compatibility_score_v2(userA, userB, wA, wB):
 
     return score_sum / total_weight
 
+
+def send_message(src, dest, text):
+    ts = datetime.datetime.now().isoformat()
+    ws_messages.append_row([src, dest, text, ts])
+
+
+def load_messages(user_a, user_b):
+    df = load_df(ws_messages)
+
+    if df.empty:
+        return df
+
+    return df[
+        ((df["user_id_source"] == user_a) & (df["user_id_dest"] == user_b)) |
+        ((df["user_id_source"] == user_b) & (df["user_id_dest"] == user_a))
+    ].sort_values("timestamp")
+
+def format_timestamp(current, previous):
+    current_dt = pd.to_datetime(current)
+    previous_dt = pd.to_datetime(previous) if previous else None
+
+    if previous_dt:
+        diff = (current_dt - previous_dt).total_seconds()
+
+        # Within 30 min → no timestamp
+        if diff < 1800:
+            return None
+
+        # Same day → time only
+        if current_dt.date() == previous_dt.date():
+            return current_dt.strftime("%I:%M %p")
+
+    now = datetime.datetime.now()
+
+    # Yesterday
+    if current_dt.date() == (now.date() - datetime.timedelta(days=1)):
+        return f"Yesterday {current_dt.strftime('%I:%M %p')}"
+
+    # Same year
+    if current_dt.year == now.year:
+        return current_dt.strftime("%B %d")
+
+    # Older
+    return current_dt.strftime("%B %d, %Y")
+
 # --------------------------
 # SESSION STATE
 # --------------------------
@@ -250,6 +296,9 @@ if "page" not in st.session_state:
 
 if "page_idx" not in st.session_state:
     st.session_state.page_idx = 0
+
+if "active_chat" not in st.session_state:
+    st.session_state.active_chat = None
 
 PAGE_SIZE = 10
 
@@ -645,21 +694,27 @@ elif st.session_state.page == "matches":
         with st.container():
             st.markdown(f"### 👤 {user.first_name} {user.last_name}")
 
-            col1, col2, col3, col4 = st.columns([2,1,1,1])
+            col1, col2, col3, col4, col5 = st.columns([2,1,1,1,1])
 
             with col1:
                 st.metric("Compatibility", f"{round(score*100)}%")
             
 
             with col2:
-                if col2.button("View", key=f"match_view_{uid}", width="stretch"):
-                    st.session_state.view_user = uid
-                    st.session_state.page = "profile"
-                    st.rerun()
+                if status == "match":
+                    col2.success("Matched ✅")
+                else:
+                    if col2.button("View", key=f"match_view_{uid}", width="stretch"):
+                        st.session_state.view_user = uid
+                        st.session_state.page = "profile"
+                        st.rerun()
 
             with col3:
                 if status == "match":
-                    col3.success("Matched ✅")
+                    if col3.button("View", key=f"match_view_{uid}", width="stretch"):
+                        st.session_state.view_user = uid
+                        st.session_state.page = "profile"
+                        st.rerun()
 
                 elif status == "incoming":
                     if col3.button("Accept", key=f"match_accept_{uid}", width='stretch'):
@@ -675,6 +730,13 @@ elif st.session_state.page == "matches":
                     log_action(me, uid, "hide_user")
                     st.rerun()
 
+            with col5:
+                if status == "match":
+                    if check_match(st.session_state.user, uid) == "match":
+                        if st.button("Send Message", key=f"msg_{uid}"):
+                            st.session_state.active_chat = uid
+                            st.session_state.page = "chat"
+                
             st.divider()
 
 
@@ -808,3 +870,60 @@ elif st.session_state.page == "my_profile":
         st.success("Profile updated!")
         st.session_state.page = "profile"
         st.rerun()
+
+
+# --------------------------
+# CHAT
+# --------------------------
+
+
+elif st.session_state.page == "chat":
+    partner = st.session_state.active_chat
+    me = st.session_state.user
+
+    if check_match(me, partner) != "match":
+        st.error("You can only message matched users.")
+        st.stop()
+
+    st.title(f"Chat with {partner}")
+
+    msgs = load_messages(me, partner)
+
+    # Display messages
+    prev_time = None
+
+    chat_container = st.container()
+
+    with chat_container:
+        for _, row in msgs.iterrows():
+            is_me = row["user_id_source"] == me
+
+            ts_label = format_timestamp(row["timestamp"], prev_time)
+            prev_time = row["timestamp"]
+
+            if ts_label:
+                st.markdown(f"<div style='text-align:center;color:gray;font-size:12px'>{ts_label}</div>", unsafe_allow_html=True)
+
+            align = "right" if is_me else "left"
+            color = "#DCF8C6" if is_me else "#F1F0F0"
+
+            st.markdown(f"""
+                <div style='text-align:{align}; margin:5px'>
+                    <div style='display:inline-block;
+                                padding:10px;
+                                border-radius:10px;
+                                background:{color};
+                                max-width:60%'>
+                        {row["payload"]}
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+
+    # Input box
+    with st.form("send_msg", clear_on_submit=True):
+        msg = st.text_input("Message")
+        submitted = st.form_submit_button("Send")
+
+        if submitted and msg:
+            send_message(me, partner, msg)
+            st.rerun()
