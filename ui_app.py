@@ -1049,7 +1049,7 @@ elif st.session_state.page == "my_profile":
     # --------------------------
     col1, col2, col3 = st.columns([1,1,1])
     with col1:
-        if st.button("View My Profile", type='Primary', width="stretch"):
+        if st.button("View My Profile", type='primary', width="stretch"):
             st.session_state.view_user = user_id
             st.session_state.page = "profile"
             st.rerun()
