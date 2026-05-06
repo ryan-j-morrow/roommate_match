@@ -685,12 +685,14 @@ elif st.session_state.page == "finder":
         user = user_df.iloc[0]
 
         with st.container():
-            # --- NAME (big + bold, keep this style) ---
-            st.markdown(f"### 👤 {user.first_name} {user.last_name}")
 
             # --- COMPATIBILITY (big) ---
-            buff, col1, col2, col3, col4 = st.columns([2,2, 1, 1, 1])
-            col1.metric("Compatibility", f"{round(score * 100)}%")
+            buff, col1, col2, col3, col4 = st.columns([1,2, 1, 1, 1])
+
+            with col1:
+                # --- NAME (big + bold, keep this style) ---
+                st.markdown(f"### 👤 {user.first_name} {user.last_name}")
+                col1.metric("Compatibility", f"{round(score * 100)}%")
 
             # --- VIEW PROFILE (NEW BUTTON) ---
             if col2.button("View Profile", key=f"view_{uid}", width='stretch'):
@@ -796,11 +798,11 @@ elif st.session_state.page == "matches":
         user = df_info[df_info.user_id == uid].iloc[0]
 
         with st.container():
-            st.markdown(f"### 👤 {user.first_name} {user.last_name}")
 
-            buff, col1, col2, col3, col4, col5 = st.columns([2,2,1,1,1,1])
+            buff, col1, col2, col3, col4, col5 = st.columns([1,2,1,1,1,1])
 
             with col1:
+                st.markdown(f"### 👤 {user.first_name} {user.last_name}")
                 st.metric("Compatibility", f"{round(score*100)}%")
             
 
