@@ -386,7 +386,7 @@ if st.session_state.user:
                         }
                         </style>
 
-                        <h1 class="app-title">RoomMatch</h1>
+                        <h1 class="app-title">:primary[RoomMatch]</h1>
                         """,
                         unsafe_allow_html=True
                     )
