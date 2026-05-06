@@ -369,7 +369,7 @@ if st.session_state.user:
 
 
     with st.container():
-        sect1, sect2 = st.columns(1,2)
+        sect1, sect2 = st.columns([1,2])
         with sect1:
             # Inject CSS for primary color + alignment
             st.markdown(
