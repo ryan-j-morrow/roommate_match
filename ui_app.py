@@ -778,13 +778,21 @@ elif st.session_state.page == "profile":
     st.title(f"{user_data["first_name"]} {user_data["last_name"]}")
     st.caption(f"User_ID: {st.session_state.view_user}")
 
-    if is_match(st.session_state.user,user_data["user_id"]):
+    if is_match(st.session_state.user,st.session_state.view_user):
         st.divider()
-        st.subheader("Contact Info")
+
+        col1, col2 = st.columns([3,1])
+        
+        with col1:
+            st.subheader("Contact Info")
+        with col2:
+            if st.button("Message", key=f"msg_{st.session_state.view_user}"):
+                st.session_state.active_chat = st.session_state.view_user
+                st.session_state.page = "chat"
+        
         st.write(f"📧 Email: {user_data['email']}")
         st.write(f"📱 Phone: {user_data['phone']}")
-    else:
-        st.info("Match with this user to see their contact info.")
+    
 
     cola, colb, colc, cold = st.columns([1,1,1,1])
 
@@ -803,20 +811,20 @@ elif st.session_state.page == "profile":
         state = check_match(me, other)
 
         if state == "match":
-            st.button("Matched ✅", disabled=True)
+            st.button("Matched ✅", disabled=True, width="stretch")
 
         elif state == "pending":
-            if st.button("Accept ✅"):
+            if st.button("Accept ✅", width="stretch"):
                 log_action(me, other, "send_request")
                 st.success("Match confirmed!")
                 st.rerun()
 
         elif state == "requested":
-            st.button("Requested ⏳", disabled=True)
+            st.button("Requested ⏳", disabled=True, width="stretch")
             st.rerun()
 
         else:  # "none"
-            if st.button("Request ➕"):
+            if st.button("Request ➕", width="stretch"):
                 log_action(me, other, "send_request")
                 st.success("Request sent!")
                 st.rerun()
