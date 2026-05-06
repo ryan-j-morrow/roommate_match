@@ -387,7 +387,7 @@ if st.session_state.user:
         if nav3.button(
             "Messages",
             type="primary" if st.session_state.page == "chat" else "secondary",
-            width='stretch', disabled=True
+            width='stretch', disabled=st.session_state.page != "chat"
         ):
             st.session_state.page = "chat"
             st.rerun()
@@ -695,7 +695,7 @@ elif st.session_state.page == "finder":
                 col1.metric("Compatibility", f"{round(score * 100)}%")
 
             # --- VIEW PROFILE (NEW BUTTON) ---
-            if col2.button("View Profile", key=f"view_{uid}", width='stretch'):
+            if col2.button("View Profile", key=f"view_{uid}", width='stretch', type='primary'):
                 st.session_state.view_user = uid
                 st.session_state.page = "profile"
 
@@ -703,7 +703,7 @@ elif st.session_state.page == "finder":
             already_requested = uid in sent
 
             if uid in received:
-                if col3.button("Accept", key=f"accept_{uid}", width='stretch'):
+                if col3.button("Accept", key=f"accept_{uid}", width='stretch', type='primary'):
                     log_action(me, uid, "send_request")
                     st.rerun()
             else:
@@ -711,6 +711,7 @@ elif st.session_state.page == "finder":
                     "Requested" if already_requested else "Request",
                     key=f"req_{uid}",
                     width='stretch',
+                    type='primary',
                     disabled=already_requested,
                     on_click=(lambda u=uid: log_action(me, u, "send_request"))
                     if not already_requested else None
@@ -730,7 +731,7 @@ elif st.session_state.page == "finder":
         st.session_state.page_idx -= 1
         st.rerun()
 
-    if col2.button("Next", disabled=end >= len(matches)):
+    if col2.button("Next", type='primary', disabled=end >= len(matches)):
         st.session_state.page_idx += 1
         st.rerun()
 
@@ -793,7 +794,6 @@ elif st.session_state.page == "matches":
     status_order = {"match": 0, "incoming": 1, "pending": 2}
     results.sort(key=lambda x: (status_order[x[2]], -x[1]))
 
-    st.sidebar.header("")
 
     # RENDER
     for uid, score, status in results:
@@ -816,7 +816,7 @@ elif st.session_state.page == "matches":
                 
 
             with col3:
-                if col3.button("View", key=f"match_view_{uid}", width="stretch"):
+                if col3.button("View", key=f"match_view_{uid}", width="stretch", type='primary'):
                     st.session_state.view_user = uid
                     st.session_state.page = "profile"
                     st.rerun()
@@ -1139,19 +1139,21 @@ elif st.session_state.page == "chat":
     if check_match(me, partner) != "match":
         st.error("You can only message matched users.")
         st.stop()
-
-    st.title(f"Chat with {partner_name}")
-    st.markdown("")
-    st.markdown("---")
-
-
+    
+    
     col1, col2 = st.columns([3,1])
-
+    
+    with col1:
+        st.title(f"Chat with {partner_name}")
+    
     with col2:
-        if col2.button("View Profile", key=f"match_view_{partner}", width="stretch"):
+        if col2.button("View Profile", key=f"match_view_{partner}", width="stretch", type='primary'):
             st.session_state.view_user = partner
             st.session_state.page = "profile"
             st.rerun()
+
+    st.markdown("")
+    st.markdown("---")
     
     st.text("")
 
