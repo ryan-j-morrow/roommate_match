@@ -108,6 +108,19 @@ def categorical_similarity(a, b, options):
 
     return 1 - abs(idx_a - idx_b) / (len(options) - 1)
 
+def numeric_similarity(a, b):
+    if a is None or b is None:
+        return None
+
+    a = float(a)
+    b = float(b)
+
+    # Normalize by the larger value (relative difference)
+    if max(a, b) == 0:
+        return 1
+
+    return 1 - abs(a - b) / max(a, b)
+
 def compatibility_score_v2(userA, userB, wA, wB):
     total_weight = 0
     score_sum = 0
@@ -124,12 +137,16 @@ def compatibility_score_v2(userA, userB, wA, wB):
         if weightB == -1 and valA != valB:
             return None
         
-        sim = categorical_similarity(valA, valB, opts)
+        if q in ['age', 'max_budget']:
+            sim = numeric_similarity(valA, valB)
+
+        else:
+            sim = categorical_similarity(valA, valB, opts)
 
         if sim is None:
             continue   # skip invalid data safely
 
-        weight = max(weightA, 0) + max(weightB, 0)
+        weight = (max(weightA, 0) + max(weightB, 0)) / 2
 
         score_sum += sim * weight
         total_weight += weight
@@ -243,29 +260,52 @@ elif st.session_state.page == "matches":
 
     me = st.session_state.user
 
-    my_info = df_info[df_info.user_id == me].iloc[0]
-    my_weights = df_weights[df_weights.user_id == me].iloc[0]
+    # ---- Safe lookups ----
+    my_info_df = df_info[df_info.user_id == me]
+    if my_info_df.empty:
+        st.error("User info not found")
+        st.stop()
+    my_info = my_info_df.iloc[0]
+
+    my_weights_df = df_weights[df_weights.user_id == me]
+    if my_weights_df.empty:
+        st.error("User weights not found")
+        st.stop()
+    my_weights = my_weights_df.iloc[0]
 
     state = get_match_state(me)
+    hidden = state.get("hidden", [])
+    sent = state.get("sent", [])
+    mutual = state.get("mutual", [])
 
-    # Filters
+    # ---- Pre-index weights for performance ----
+    weights_map = {row.user_id: row for _, row in df_weights.iterrows()}
+
+    # ---- Filters ----
     st.sidebar.header("Filters")
     min_budget = st.sidebar.selectbox("Min Budget", max_budget_options)
     smoke_pref = st.sidebar.selectbox("Smoking", ["Any"] + smoking_options)
 
     def passes_filters(user):
-        if user.user_id in state["hidden"]:
+        # Hidden users
+        if user.user_id in hidden:
             return False
 
-        if max_budget_options.index(user.max_budget) < max_budget_options.index(min_budget):
+        # Missing data safety
+        if pd.isna(user.max_budget):
             return False
 
+        # Budget filter (numeric, correct)
+        if int(user.max_budget) < min_budget:
+            return False
+
+        # Smoking filter
         if smoke_pref != "Any" and user.smoking != smoke_pref:
             return False
 
         return True
 
-    # Compute matches
+    # ---- Compute matches ----
     matches = []
 
     for _, other in df_info.iterrows():
@@ -275,33 +315,40 @@ elif st.session_state.page == "matches":
         if not passes_filters(other):
             continue
 
-        w_other = df_weights[df_weights.user_id == other.user_id].iloc[0]
+        w_other = weights_map.get(other.user_id)
+        if w_other is None:
+            continue
 
         score = compatibility_score_v2(my_info, other, my_weights, w_other)
 
         if score is not None:
             matches.append((other.user_id, score))
 
+    # ---- Sort matches ----
     matches.sort(key=lambda x: x[1], reverse=True)
 
-    # Pagination
+    # ---- Pagination ----
     start = st.session_state.page_idx * PAGE_SIZE
     end = start + PAGE_SIZE
     page_matches = matches[start:end]
 
+    # ---- Render results ----
     for uid, score in page_matches:
-        user = df_info[df_info.user_id == uid].iloc[0]
+        user_df = df_info[df_info.user_id == uid]
+        if user_df.empty:
+            continue
+        user = user_df.iloc[0]
 
         with st.container():
             st.markdown(f"### 👤 {user.first_name} {user.last_name}")
 
-            col1, col2, col3 = st.columns([2,1,1])
+            col1, col2, col3 = st.columns([2, 1, 1])
 
-            col1.metric("Compatibility", f"{round(score*100)}%")
+            col1.metric("Compatibility", f"{round(score * 100)}%")
 
-            if uid in state["mutual"]:
+            if uid in mutual:
                 col1.success("Match ✅")
-            elif uid in state["sent"]:
+            elif uid in sent:
                 col1.info("Requested 📩")
 
             if col2.button("View", key=f"view_{uid}"):
@@ -311,17 +358,18 @@ elif st.session_state.page == "matches":
 
             if col3.button("Hide", key=f"hide_{uid}"):
                 log_action(me, uid, "hide_user")
+                st.rerun()
 
             st.divider()
 
-    # Pagination buttons
+    # ---- Pagination controls ----
     col1, col2 = st.columns(2)
 
-    if col1.button("Prev") and st.session_state.page_idx > 0:
+    if col1.button("Prev", disabled=st.session_state.page_idx == 0):
         st.session_state.page_idx -= 1
         st.rerun()
 
-    if col2.button("Next") and end < len(matches):
+    if col2.button("Next", disabled=end >= len(matches)):
         st.session_state.page_idx += 1
         st.rerun()
 
