@@ -906,7 +906,7 @@ elif st.session_state.page == "my_profile":
 elif st.session_state.page == "chat":
     active_chat = get_data("UserInfo", st.session_state.active_chat)
     partner = active_chat["user_id"]
-    partner_name = f"{partner["first_name"]} {partner["last_name"]}"
+    partner_name = f"{active_chat["first_name"]} {active_chat["last_name"]}"
     me = st.session_state.user
 
     if check_match(me, partner) != "match":
