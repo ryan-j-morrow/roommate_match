@@ -702,7 +702,7 @@ elif st.session_state.page == "matches":
 
             with col2:
                 if status == "match":
-                    col2.success("Matched ✅")
+                    col2.success("Matched")
                 else:
                     if col2.button("View", key=f"match_view_{uid}", width="stretch"):
                         st.session_state.view_user = uid
@@ -733,8 +733,8 @@ elif st.session_state.page == "matches":
             with col5:
                 if status == "match":
                     if check_match(st.session_state.user, uid) == "match":
-                        if st.button("Send Message", key=f"msg_{uid}"):
-                            st.session_state.active_chat = uid
+                        if st.button("Message", key=f"msg_{uid}"):
+                            st.session_state.active_chat = other
                             st.session_state.page = "chat"
                 
             st.divider()
@@ -878,7 +878,9 @@ elif st.session_state.page == "my_profile":
 
 
 elif st.session_state.page == "chat":
-    partner = st.session_state.active_chat
+    active_chat = st.session_state.active_chat
+    partner = active_chat["user_id"]
+    partner_name = f"{partner["first_name"]} {partner["last_name"]}"
     me = st.session_state.user
 
     if check_match(me, partner) != "match":
