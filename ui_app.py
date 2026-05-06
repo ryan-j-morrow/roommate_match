@@ -447,6 +447,10 @@ elif st.session_state.page == "signup":
                     "Dealbreaker", key=f"{q}_nonneg"
                 )
 
+            
+            if non_negotiable[q]:
+                    weights[q] = -1
+
         colA, colB = st.columns(2)
 
         with colA:
@@ -900,6 +904,7 @@ elif st.session_state.page == "my_profile":
     col1, col2 = st.columns(2)
 
     with col1:
+        st.text_input("Username", value=user_info["user_id"], disabled=True)
         new_password = st.text_input("New Password", type="password")
 
     with col2:
@@ -965,7 +970,8 @@ elif st.session_state.page == "my_profile":
             updated_prefs[key] = st.selectbox(
                 key.replace("_", " ").title(),
                 options,
-                index=options.index(user_info.get(key)) if user_info.get(key) in options else 0
+                index=options.index(user_info.get(key)) if user_info.get(key) in options else 0,
+                key=f"pref_{key}"   # ✅ UNIQUE KEY
             )
 
     if st.button("Save Preferences"):
@@ -984,11 +990,35 @@ elif st.session_state.page == "my_profile":
     updated_weights = {}
 
     for key, _ in questions:
-        updated_weights[key] = st.slider(
-            key.replace("_", " ").title(),
-            0, 10,
-            int(weight_dict.get(key, 5))
-        )
+        current_weight = weight_dict.get(key, 5)
+
+        is_dealbreaker = current_weight == -1
+
+        col1, col2 = st.columns([3, 1])
+
+        # Slider
+        with col1:
+            slider_value = st.slider(
+                key.replace("_", " ").title(),
+                0, 10,
+                5 if is_dealbreaker else current_weight,
+                key=f"weight_{key}"
+            )
+
+        # Dealbreaker checkbox
+        with col2:
+            dealbreaker = st.checkbox(
+                "Dealbreaker",
+                value=is_dealbreaker,
+                key=f"deal_{key}"
+            )
+
+        # ✅ FINAL VALUE LOGIC
+        if dealbreaker:
+            updated_weights[key] = -1
+        else:
+            updated_weights[key] = slider_value
+
 
     if st.button("Save Importance"):
         # Delete old weights
