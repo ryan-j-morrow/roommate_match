@@ -806,6 +806,7 @@ elif st.session_state.page == "profile":
 
     me = st.session_state.user
     other = st.session_state.view_user
+    mine = me == other
 
     with colb:
         if match:
@@ -814,7 +815,9 @@ elif st.session_state.page == "profile":
                 st.session_state.page = "chat"
     
     with colc:
-        if st.button("Hide User", width='stretch'):
+        if mine:
+            pass
+        else st.button("Hide User", width='stretch'):
             log_action(me, other, "hide_user")
             st.success("User Hidden!")
             st.rerun()
@@ -837,6 +840,8 @@ elif st.session_state.page == "profile":
             st.button("Requested ⏳", disabled=True, width="stretch")
             st.rerun()
 
+        elif mine:
+            pass
         else:  # "none"
             if st.button("Request ➕", width="stretch"):
                 log_action(me, other, "send_request")
