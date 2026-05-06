@@ -54,6 +54,20 @@ questions = [
 # --------------------------
 # HELPERS
 # --------------------------
+def render_header():
+    col1, col2 = st.columns([1, 6])
+
+    with col1:
+        st.image("logo.png", width=60)  # Replace with your logo file
+
+    with col2:
+        st.markdown(
+            "<h1 style='margin-bottom:0;'>RoomMatch</h1>",
+            unsafe_allow_html=True
+        )
+
+    st.markdown("---")
+
 def btn(label, **kwargs):
     # default to primary unless explicitly overridden
     if "type" not in kwargs:
@@ -365,6 +379,9 @@ PAGE_SIZE = 10
 
 if st.session_state.user:
     # Top navigation bar using columns
+
+    render_header()
+
     with st.container():
         buf0, nav1, buf1, nav2, buf2, nav3, buf3, nav4, buf4, nav5, buf5 = st.columns(11)
 
@@ -418,7 +435,7 @@ if st.session_state.page == "login":
 
     col1, col2, col3 = st.columns(3)
 
-    with col1:
+    with col2:
         st.title("Log-In")
         st.markdown("Please enter your user_id and password to sign in or create an account today.")
         st.markdown("---")
@@ -427,7 +444,7 @@ if st.session_state.page == "login":
         with st.form("login_form", clear_on_submit=False):
             user_id = st.text_input("User_ID")
             password = st.text_input("Password", type="password")
-            submit = st.form_submit_button("Sign In")
+            submit = st.form_submit_button("Sign In", type='primary')
 
         if submit:
             user = authenticate_user(user_id, password)
@@ -1147,6 +1164,7 @@ elif st.session_state.page == "chat":
         st.title(f"Chat with {partner_name}")
     
     with col2:
+        st.title("")
         if col2.button("View Profile", key=f"match_view_{partner}", width="stretch", type='primary'):
             st.session_state.view_user = partner
             st.session_state.page = "profile"
