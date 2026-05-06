@@ -296,7 +296,13 @@ elif st.session_state.page == "matches":
             return False
 
         # Budget filter (numeric, correct)
-        if int(user.max_budget) < min_budget:
+        try:
+            user_budget = int(float(user.max_budget))
+            min_budget_val = int(float(min_budget))
+        except (ValueError, TypeError):
+            return False
+
+        if user_budget < min_budget_val:
             return False
 
         # Smoking filter
