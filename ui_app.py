@@ -366,136 +366,52 @@ PAGE_SIZE = 10
 
 if st.session_state.user:
 
-    st.markdown("""
-        <style>
-
-        /* --------------------------
-        GLOBAL RESET + HEADER
-        -------------------------- */
-
-        /* Hide Streamlit default top bar */
-        [data-testid="stHeader"] {
-            display: none;
-        }
-
-        /* Remove top whitespace */
-        .block-container {
-            padding-top: 130px !important;  /* pushes content below fixed nav */
-        }
-                    
-        div[data-testid="stHorizontalBlock"] {
-            position: relative;
-        }
-
-        /* --------------------------
-        STICKY NAV (ROBUST TARGET)
-        -------------------------- */
-
-        /* Find the container that includes your nav anchor */
-        div:has(> .nav-anchor) {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-
-            z-index: 9999;
-
-            background: var(--background-color);
-
-            padding: 10px 30px;
-            border-bottom: 1px solid rgba(150,150,150,0.2);
-
-            height: 95px;
-
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-
-        /* --------------------------
-        TYPOGRAPHY
-        -------------------------- */
-
-        .app-title {
-            font-size: 2.8rem;
-            font-weight: 700;
-            color: var(--primaryColor) !important;
-            margin: 0;
-            line-height: 1;
-        }
-
-        /* Remove default heading spacing */
-        h1, h2, h3 {
-            margin: 0 !important;
-        }
-
-
-        /* --------------------------
-        COLUMN ALIGNMENT FIXES
-        -------------------------- */
-
-        /* Vertically center everything inside columns */
-        div[data-testid="column"] {
-            display: flex;
-            align-items: center;
-        }
-
-        /* Ensure inner wrappers behave */
-        div[data-testid="column"] > div {
-            width: 100%;
-        }
-
-
-        /* --------------------------
-        IMAGE (LOGO)
-        -------------------------- */
-
-        .stImage img {
-            display: block;
-        }
-
-
-        /* --------------------------
-        BUTTON POLISH
-        -------------------------- */
-
-        /* Remove vertical misalignment */
-        button {
-            margin-top: 0 !important;
-            margin-bottom: 0 !important;
-        }
-
-        /* Optional: make buttons slightly nicer */
-        button[kind="secondary"],
-        button[kind="primary"] {
-            border-radius: 8px;
-        }
-
-
-        /* --------------------------
-        DEBUG (enable if needed)
-        -------------------------- */
-
-        /*
-        div[data-testid="stHorizontalBlock"]:first-of-type {
-            outline: 4px solid red;
-        }
-        */
-
-        </style>
-        """, unsafe_allow_html=True
-    )
-
-
     with st.container():
 
         # Inject improved CSS
+
+        st.markdown("""
+            <style>
+            /* Make every column a flex container */
+            div[data-testid="column"] {
+                display: flex;
+                align-items: center !important;   /* ✅ vertical centering */
+            }
+
+            /* Ensure inner elements behave nicely */
+            div[data-testid="column"] > div {
+                width: 100%;
+            }
+
+            /* Keep title vertically centered with logo */
+            .app-title {
+                color: var(--primary-color);
+                font-size: 42px;
+                font-weight: 700;
+                margin: 0;
+                display: flex;
+                align-items: center;
+                height: 100%;
+            }
+
+            /* Ensure buttons are vertically centered */
+            .stButton {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100%;
+            }
+            </style>
+            """, unsafe_allow_html=True
+        )
+
+
         st.markdown('<div class="nav-anchor"></div>', unsafe_allow_html=True)
 
         sect1, sect2 = st.columns([2, 3])
 
         with sect1:
+            st.markdown('<div style="height:80px;">', unsafe_allow_html=True)
 
             col1, col2 = st.columns([2.5, 10])  # slightly more space for image
 
@@ -509,8 +425,12 @@ if st.session_state.user:
                     """,
                     unsafe_allow_html=True
                 )
+            st.markdown('</div>', unsafe_allow_html=True)
 
         with sect2:
+
+            st.markdown('<div style="height:80px;">', unsafe_allow_html=True)
+
             buf0, nav1, buf1, nav2, buf2, nav3, buf3, nav4, buf4, nav5, buf5 = st.columns(
                 [0.5,1,0.5,1,0.5,1,0.5,1,0.5,1,0.5]
             )
@@ -556,6 +476,8 @@ if st.session_state.user:
                 st.session_state.user = None
                 st.session_state.page = "login"
                 st.rerun()
+
+            st.markdown('</div>', unsafe_allow_html=True)
 
 
 # --------------------------
