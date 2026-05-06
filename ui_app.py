@@ -192,7 +192,7 @@ PAGE_SIZE = 10
 
 if st.session_state.user:
     # Top navigation bar using columns
-    col1, col2, col4, col5 = st.columns([3,2,1,1])
+    col1, col2, col4, col5 = st.columns([1,1,1,1])
 
     with col1:
         if st.button("Roommate Finder"):
@@ -433,10 +433,13 @@ elif st.session_state.page == "finder":
 
             col1, col2, col3 = st.columns([2, 1, 1])
 
+            # LEFT COLUMN
             col1.metric("Compatibility", f"{round(score * 100)}%")
 
+            # --- STATE LOGIC ---
             if uid in mutual:
                 col1.success("Match ✅")
+                col2.empty()  # keep layout
 
             elif uid in received:
                 if col2.button("Accept", key=f"accept_{uid}"):
@@ -445,18 +448,19 @@ elif st.session_state.page == "finder":
 
             elif uid in sent:
                 col1.info("Requested 📩")
+                col2.empty()  # keep layout
 
             else:
                 if col2.button("Request", key=f"req_{uid}"):
                     log_action(me, uid, "send_request")
                     st.rerun()
 
-            # ALWAYS AVAILABLE
+            # ALWAYS IN SAME SPOT
             if col3.button("Hide", key=f"hide_{uid}"):
                 log_action(me, uid, "hide_user")
                 st.rerun()
 
-            st.divider()
+            st.divider()            
 
     # ---- Pagination controls ----
     col1, col2 = st.columns(2)
@@ -534,25 +538,28 @@ elif st.session_state.page == "matches":
 
             col1, col2, col3 = st.columns([2,1,1])
 
-            if status == "match":
-                col1.success("Matched ✅")
+            with col1:
+                if status == "match":
+                    col1.success("Matched ✅")
 
-            elif status == "incoming":
-                if col2.button("Accept", key=f"match_accept_{uid}"):
-                    log_action(me, uid, "accept_request")
+                elif status == "incoming":
+                    if col1.button("Accept", key=f"match_accept_{uid}"):
+                        log_action(me, uid, "accept_request")
+                        st.rerun()
+
+                else:
+                    col1.info("Pending 📩")
+
+            with col2:
+                if col2.button("View", key=f"match_view_{uid}"):
+                    st.session_state.view = uid
+                    st.session_state.page = "profile"
                     st.rerun()
 
-            else:
-                col1.info("Pending 📩")
-
-            if col2.button("View", key=f"match_view_{uid}"):
-                st.session_state.view = uid
-                st.session_state.page = "profile"
-                st.rerun()
-
-            if col3.button("Hide", key=f"match_hide_{uid}"):
-                log_action(me, uid, "hide_user")
-                st.rerun()
+            with col3:
+                if col3.button("Hide", key=f"match_hide_{uid}"):
+                    log_action(me, uid, "hide_user")
+                    st.rerun()
 
             st.divider()
 
