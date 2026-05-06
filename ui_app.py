@@ -168,28 +168,52 @@ elif st.session_state.page == "signup":
 
     with st.form("signup_form"):
         responses = {}
+        weights = {}
+        non_negotiable = {}
 
         for q, options in questions:
-            responses[q] = st.selectbox(q.replace("_", " ").title(), options)
+            st.subheader(q.replace("_", " ").title())
 
-        col1, col2 = st.columns(2)
+            col1, col2, col3 = st.columns([2, 1, 1])
 
-        with col1:
+            with col1:
+                responses[q] = st.selectbox(
+                    f"{q}_answer", options, key=f"{q}_answer"
+                )
+
+            with col2:
+                weights[q] = st.slider(
+                    "Importance", 1, 5, 3, key=f"{q}_weight"
+                )
+
+            with col3:
+                non_negotiable[q] = st.checkbox(
+                    "Dealbreaker", key=f"{q}_nonneg"
+                )
+
+        colA, colB = st.columns(2)
+
+        with colA:
             submitted = st.form_submit_button("✅ Submit")
 
-        with col2:
+        with colB:
             cancel = st.form_submit_button("⬅ Cancel")
 
         if submitted:
             st.success("Account created!")
-            # TODO: save responses to Google Sheets
+
+            # Store everything in session (or send to Sheets)
+            st.session_state.responses = responses
+            st.session_state.weights = weights
+            st.session_state.non_negotiable = non_negotiable
+
+            # (Later: save to Google Sheets)
             st.session_state.page = "matches"
             st.rerun()
 
         if cancel:
             st.session_state.page = "login"
             st.rerun()
-
 # --------------------------
 # MATCHES
 # --------------------------
