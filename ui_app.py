@@ -597,7 +597,7 @@ elif st.session_state.page == "matches":
         with st.container():
             st.markdown(f"### 👤 {user.first_name} {user.last_name}")
 
-            col1, col2, col3, col4 = st.columns([2,2,1,1])
+            col1, col2, col3, col4 = st.columns([2,1,1,1])
 
             with col1:
                 st.metric("Compatibility", f"{round(score*100)}%")
@@ -607,7 +607,7 @@ elif st.session_state.page == "matches":
                     col2.success("Matched ✅")
 
                 elif status == "incoming":
-                    if col2.button("Accept", key=f"match_accept_{uid}"):
+                    if col2.button("Accept", key=f"match_accept_{uid}", width='stretch'):
                         log_action(me, uid, "send_request")
                         st.rerun()
 
