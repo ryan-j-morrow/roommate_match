@@ -52,14 +52,16 @@ def load_df(table_name):
     response = supabase.table(table_name).select("*").execute()
     return pd.DataFrame(response.data)
 
-def authenticate_user(user_id, password):def authenticate_user(user("*") \
+def authenticate_user(user_id, password):
+    response = supabase.table("users") \
+        .select("*") \
         .eq("user_id", user_id) \
         .eq("password", password) \
         .execute()
 
-    return res.data[0] if res.data else None
-    res = supabase.table("user_info") \
-
+    if response.data:
+        return response.data[0]  # user found
+    return None  # invalid credentials
 
 def log_action(src, dest, action):
     supabase.table("interaction_log").insert({
