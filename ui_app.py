@@ -103,6 +103,23 @@ def get_match_state(me):
         "hidden": hidden
     }
 
+def is_match(user_a, user_b):
+    logs = load_df(ws_log)
+
+    liked_a_to_b = (
+        (logs["src"] == user_a) &
+        (logs["dest"] == user_b) &
+        (logs["action"] == "like")
+    )
+
+    liked_b_to_a = (
+        (logs["src"] == user_b) &
+        (logs["dest"] == user_a) &
+        (logs["action"] == "like")
+    )
+
+    return liked_a_to_b.any() and liked_b_to_a.any()
+
 def categorical_similarity(a, b, options):
     if a is None or b is None:
         return None
@@ -177,6 +194,9 @@ def compatibility_score_v2(userA, userB, wA, wB):
 if "user" not in st.session_state:
     st.session_state.user = None
 
+if "view_user" not in st.session_state:
+    st.session_state.view_user = None
+
 if "page" not in st.session_state:
     st.session_state.page = "login"
 
@@ -195,10 +215,10 @@ if st.session_state.user:
     col1, col2, col4, col5 = st.columns([1,1,1,1])
 
     with col1:
-        if st.button("Roommate Finder"):
+        if st.button("Roommate Finder", width='stretch'):
             st.session_state.page = "finder"
     with col2:
-        if st.button("Matches"):
+        if st.button("Matches", width='stretch'):
             st.session_state.page = "matches"
 
     #with col3:
@@ -206,11 +226,11 @@ if st.session_state.user:
     #        st.session_state.page = "profile"
 
     with col4:
-        if st.button("My Profile"):
+        if st.button("My Profile", width='stretch'):
             st.session_state.page = "my_profile"
 
     with col5:
-        if st.button("Logout"):
+        if st.button("Logout", width='stretch'):
             st.session_state.user = None
             st.session_state.page = "login"
             st.rerun()
@@ -594,7 +614,7 @@ elif st.session_state.page == "matches":
 
             with col3:
                 if col3.button("View", key=f"match_view_{uid}"):
-                    st.session_state.view = uid
+                    st.session_state.view_user = uid
                     st.session_state.page = "profile"
                     st.rerun()
 
@@ -613,10 +633,18 @@ elif st.session_state.page == "profile":
     
 
     df = load_df(ws_info)
-    user_data = df[df["user_id"] == st.session_state.user].iloc[0]
+    user_data = df[df["user_id"] == st.session_state.view_user].iloc[0]
     
     st.title(f"{user_data["first_name"]} {user_data["last_name"]}")
-    st.caption(f"User_ID: {st.session_state.user}")
+    st.caption(f"User_ID: {st.session_state.view_user}")
+
+    if is_match(st.session_state.user,user_data["username"]):
+        st.divider()
+        st.subheader("Contact Info")
+        st.write(f"📧 Email: {user_data['email']}")
+        st.write(f"📱 Phone: {user_data['phone']}")
+    else:
+        st.info("Match with this user to see their contact info.")
 
     col1, col2 = st.columns(2)
 
