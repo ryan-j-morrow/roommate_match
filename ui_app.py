@@ -302,7 +302,7 @@ elif st.session_state.page == "signup":
             if not existing_users.empty and user_id in existing_users.get("user_id", []).values:
                 st.error("User ID already exists.")
             else:
-                # Save EVERYTHING in one row
+                # ✅ Save USER INFO
                 ws_info.append_row([
                     user_id,
                     password,
@@ -312,6 +312,26 @@ elif st.session_state.page == "signup":
                     email,
                     *responses.values()
                 ])
+
+                # ✅ Convert importance -> weights row (MATCHES SHEET COLUMNS)
+                weight_row = [
+                    user_id,
+                    weights["age"],
+                    weights["gender"],
+                    weights["sleep_schedule"],
+                    weights["cleanliness_level"],
+                    weights["guests_frequency"],
+                    weights["smoking"],
+                    weights["noise_tolerance"],
+                    weights["max_budget"],
+                    weights["pets_comfort"],
+                    weights["work_from_home"],
+                    weights["social_level"],
+                    weights["conflict_resolution"],
+                ]
+
+                # ✅ Save weights
+                ws_weights.append_row(weight_row)
 
                 st.success("Account created successfully!")
                 st.session_state.page = "login"
