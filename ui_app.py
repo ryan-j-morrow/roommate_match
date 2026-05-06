@@ -774,33 +774,24 @@ elif st.session_state.page == "profile":
 
     df = load_df(ws_info)
     user_data = df[df["user_id"] == st.session_state.view_user].iloc[0]
+    match = is_match(st.session_state.user,st.session_state.view_user)
     
     st.title(f"{user_data["first_name"]} {user_data["last_name"]}")
     st.caption(f"User_ID: {st.session_state.view_user}")
-
-    if is_match(st.session_state.user,st.session_state.view_user):
-        st.divider()
-
-        col1, col2 = st.columns([3,1])
-        
-        with col1:
-            st.subheader("Contact Info")
-        with col2:
-            if st.button("Message", key=f"msg_{st.session_state.view_user}", width='stretch'):
-                st.session_state.active_chat = st.session_state.view_user
-                st.session_state.page = "chat"
-        
-        st.write(f"📧 Email: {user_data['email']}")
-        st.write(f"📱 Phone: {user_data['phone']}")
-    
 
     cola, colb, colc, cold = st.columns([1,1,1,1])
 
     me = st.session_state.user
     other = st.session_state.view_user
 
+    with colb:
+        if match:
+            if st.button("Message", key=f"msg_{st.session_state.view_user}", width='stretch'):
+                st.session_state.active_chat = st.session_state.view_user
+                st.session_state.page = "chat"
+    
     with colc:
-        if st.button("Hide User"):
+        if st.button("Hide User", width='stretch'):
             log_action(me, other, "hide_user")
             st.success("User Hidden!")
             st.rerun()
@@ -829,6 +820,18 @@ elif st.session_state.page == "profile":
                 st.success("Request sent!")
                 st.rerun()
 
+
+    if match:
+        st.divider()
+
+        col1, col2 = st.columns([3,1])
+        
+        with col1:
+            st.subheader("Contact Info")
+        
+        st.write(f"📧 Email: {user_data['email']}")
+        st.write(f"📱 Phone: {user_data['phone']}")
+    
 
     col1, col2 = st.columns(2)
 
