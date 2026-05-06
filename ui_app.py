@@ -760,7 +760,7 @@ elif st.session_state.page == "matches":
                 if status == "match":
                     if check_match(st.session_state.user, uid) == "match":
                         if st.button("Message", key=f"msg_{uid}"):
-                            st.session_state.active_chat = other
+                            st.session_state.active_chat = uid
                             st.session_state.page = "chat"
                 
             st.divider()
