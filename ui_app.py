@@ -89,10 +89,23 @@ def get_match_state(me):
     }
 
 def categorical_similarity(a, b, options):
+    if a is None or b is None:
+        return None
+
+    # Normalize strings
+    a = str(a).strip()
+    b = str(b).strip()
+    options = [str(o).strip() for o in options]
+
     if a == b:
         return 1.0
+
+    if a not in options or b not in options:
+        return None   # <-- critical fix
+
     idx_a = options.index(a)
     idx_b = options.index(b)
+
     return 1 - abs(idx_a - idx_b) / (len(options) - 1)
 
 def compatibility_score_v2(userA, userB, wA, wB):
@@ -110,8 +123,12 @@ def compatibility_score_v2(userA, userB, wA, wB):
             return None
         if weightB == -1 and valA != valB:
             return None
-
+        
         sim = categorical_similarity(valA, valB, opts)
+
+        if sim is None:
+            continue   # skip invalid data safely
+
         weight = max(weightA, 0) + max(weightB, 0)
 
         score_sum += sim * weight
