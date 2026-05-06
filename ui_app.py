@@ -71,6 +71,27 @@ def log_action(src, dest, action):
         "timestamp": datetime.datetime.now().isoformat()
     }).execute()
 
+def pivot_weights(df):
+
+    if df.empty:
+        return pd.DataFrame()
+
+    df_pivot = (
+        df.pivot(index="user_id", columns="question", values="weight")
+        .add_prefix("weight_")
+        .reset_index()
+    )
+
+    return df_pivot
+
+def get_user_weights(weights_df, user_id):
+    row = weights_df[weights_df["user_id"] == user_id]
+    
+    if row.empty:
+        return None
+    
+    return row.iloc[0]
+
 def get_match_state(me):
     logs = load_df("interaction_log")
 
@@ -205,36 +226,52 @@ def compatibility_score_v2(userA, userB, wA, wB):
     total_weight = 0
     score_sum = 0
 
+    # 🚫 If weights missing, skip scoring
+    if wA is None or wB is None:
+        return None
+
     for (q, opts) in questions:
-        valA = userA[q]
-        valB = userB[q]
+        # ✅ SAFE value access
+        valA = userA.get(q)
+        valB = userB.get(q)
 
-        weightA = wA[f"weight_{q}"]
-        weightB = wB[f"weight_{q}"]
+        if valA is None or valB is None:
+            continue
 
+        # ✅ SAFE weight access (prevents KeyError)
+        weightA = wA.get(f"weight_{q}", 1)
+        weightB = wB.get(f"weight_{q}", 1)
+
+        # 🚫 Non-negotiable rule
         if weightA == -1 and valA != valB:
             return None
         if weightB == -1 and valA != valB:
             return None
-        
-        if q in ['age', 'max_budget']:
-            sim = numeric_similarity(valA, valB)
 
+        # 🔢 Similarity calculation
+        if q in ["age", "max_budget"]:
+            sim = numeric_similarity(valA, valB)
         else:
             sim = categorical_similarity(valA, valB, opts)
 
         if sim is None:
-            continue   # skip invalid data safely
+            continue
 
+        # ✅ Prevent negative weights from hurting score
         weight = (max(weightA, 0) + max(weightB, 0)) / 2
+
+        if weight == 0:
+            continue
 
         score_sum += sim * weight
         total_weight += weight
 
+    # ✅ Final normalization
     if total_weight == 0:
-        return 0
+        return None
 
     return score_sum / total_weight
+
 
 def get_data(table_name, user_id):
     response = supabase.table(table_name).select("*").eq("user_id", user_id).execute()
@@ -479,7 +516,8 @@ elif st.session_state.page == "finder":
     st.title("Find Roommates")
 
     df_info = load_df("user_info")
-    df_weights = load_df("user_weights")
+    df_weights_long = load_df("user_weights")
+    df_weights = pivot_weights(df_weights_long)
 
     me = st.session_state.user
 
@@ -490,11 +528,10 @@ elif st.session_state.page == "finder":
         st.stop()
     my_info = my_info_df.iloc[0]
 
-    my_weights_df = df_weights[df_weights.user_id == me]
-    if my_weights_df.empty:
+    my_weights = get_user_weights(df_weights, me)
+    if my_weights is None:
         st.error("User weights not found")
         st.stop()
-    my_weights = my_weights_df.iloc[0]
 
     state = get_match_state(me)
         
@@ -652,7 +689,8 @@ elif st.session_state.page == "matches":
     st.title("Your Matches")
 
     df_info = load_df("user_info")
-    df_weights = load_df("user_weights")
+    df_weights_long = load_df("user_weights")
+    df_weights = pivot_weights(df_weights_long)
     me = st.session_state.user
 
     my_info = df_info[df_info.user_id == me].iloc[0]
