@@ -1,5 +1,5 @@
 [theme]
-primaryColor="#7A5FFF"            # your ACCENT_COLOR → buttons, active states
+primaryColor="#7751b3"            # your ACCENT_COLOR → buttons, active states
 backgroundColor="#F5F0FF"         # your SECONDARY_COLOR → page bg
 secondaryBackgroundColor="#FFFFFF" # cards/sidebar (use white or light purple)
 textColor="#1F1F1F"               # your TEXT_COLOR
