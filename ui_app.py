@@ -75,26 +75,26 @@ def get_match_state(me):
     logs = load_df("interaction_log")
 
     sent_df = logs[
-        (logs.user_id_source == me) &
+        (logs.src == me) &
         (logs.action == "send_request")
     ]
 
     received_df = logs[
-        (logs.user_id_dest == me) &
+        (logs.dest == me) &
         (logs.action == "send_request")
     ]
 
     # Convert to sets for fast lookup
-    sent = set(sent_df.user_id_dest)
-    received = set(received_df.user_id_source)
+    sent = set(sent_df.dest)
+    received = set(received_df.src)
 
     mutual = sent.intersection(received)
 
     hidden_df = logs[
-        (logs.user_id_source == me) &
+        (logs.src == me) &
         (logs.action == "hide_user")
     ]
-    hidden = set(hidden_df.user_id_dest)
+    hidden = set(hidden_df.dest)
 
     return {
         "sent": sent,
@@ -107,14 +107,14 @@ def is_match(user_a, user_b):
     logs = load_df("interaction_log")
 
     liked_a_to_b = (
-        (logs["user_id_source"] == user_a) &
-        (logs["user_id_dest"] == user_b) &
+        (logs["src"] == user_a) &
+        (logs["dest"] == user_b) &
         (logs["action"] == "send_request")
     )
 
     liked_b_to_a = (
-        (logs["user_id_source"] == user_b) &
-        (logs["user_id_dest"] == user_a) &
+        (logs["src"] == user_b) &
+        (logs["dest"] == user_a) &
         (logs["action"] == "send_request")
     )
 
@@ -124,14 +124,14 @@ def is_requested(user_a, user_b):
     logs = load_df("interaction_log")
 
     requested_a_to_b = (
-        (logs["user_id_source"] == user_a) &
-        (logs["user_id_dest"] == user_b) &
+        (logs["src"] == user_a) &
+        (logs["dest"] == user_b) &
         (logs["action"] == "send_request")
     )
 
     requested_b_to_a = (
-        (logs["user_id_source"] == user_b) &
-        (logs["user_id_dest"] == user_a) &
+        (logs["src"] == user_b) &
+        (logs["dest"] == user_a) &
         (logs["action"] == "send_request")
     )
 
@@ -143,14 +143,14 @@ def is_pending(user_a, user_b):
     logs = load_df("interaction_log")
 
     requested_b_to_a = (
-        (logs["user_id_source"] == user_b) &
-        (logs["user_id_dest"] == user_a) &
+        (logs["src"] == user_b) &
+        (logs["dest"] == user_a) &
         (logs["action"] == "send_request")
     )
 
     requested_a_to_b = (
-        (logs["user_id_source"] == user_a) &
-        (logs["user_id_dest"] == user_b) &
+        (logs["src"] == user_a) &
+        (logs["dest"] == user_b) &
         (logs["action"] == "send_request")
     )
 
@@ -257,8 +257,8 @@ def load_messages(user_a, user_b):
         return df
 
     return df[
-        ((df["user_id_source"] == user_a) & (df["user_id_dest"] == user_b)) |
-        ((df["user_id_source"] == user_b) & (df["user_id_dest"] == user_a))
+        ((df["src"] == user_a) & (df["dest"] == user_b)) |
+        ((df["src"] == user_b) & (df["dest"] == user_a))
     ].sort_values("timestamp")
 
 def format_timestamp(current, previous):
@@ -933,7 +933,7 @@ elif st.session_state.page == "chat":
 
     with chat_container:
         for _, row in msgs.iterrows():
-            is_me = row["user_id_source"] == me
+            is_me = row["src"] == me
 
             ts_label = format_timestamp(row["timestamp"], prev_time)
             prev_time = row["timestamp"]
@@ -951,7 +951,7 @@ elif st.session_state.page == "chat":
                                 border-radius:10px;
                                 background:{color};
                                 max-width:60%'>
-                        {row["payload"]}
+                        {row["message"]}
                     </div>
                 </div>
             """, unsafe_allow_html=True)
