@@ -687,7 +687,7 @@ elif st.session_state.page == "finder":
         with st.container():
 
             # --- COMPATIBILITY (big) ---
-            buff, col1, col2, col3, col4 = st.columns([1,2, 1, 1, 1])
+            buff, col1, col2, col3, col4 = st.columns([.5,2, 1, 1, 1])
 
             with col1:
                 # --- NAME (big + bold, keep this style) ---
@@ -793,13 +793,15 @@ elif st.session_state.page == "matches":
     status_order = {"match": 0, "incoming": 1, "pending": 2}
     results.sort(key=lambda x: (status_order[x[2]], -x[1]))
 
+    st.sidebar.header("")
+
     # RENDER
     for uid, score, status in results:
         user = df_info[df_info.user_id == uid].iloc[0]
 
         with st.container():
 
-            buff, col1, col2, col3, col4, col5 = st.columns([1,2,1,1,1,1])
+            buff, col1, col2, col3, col4, col5 = st.columns([.5,2,1,1,1,1])
 
             with col1:
                 st.markdown(f"### 👤 {user.first_name} {user.last_name}")
