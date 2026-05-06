@@ -378,11 +378,7 @@ if st.session_state.user:
                 st.image("logo.png", width=150)  # ✅ bigger logo
             
             with col2:                
-                st.markdown(
-                    """
-                    :primary[RoomMatch]</h1>
-                    """
-                )
+                st.markdown("# **:primary[RoomMatch]**")
 
 
 
