@@ -9,30 +9,20 @@ import datetime
 # --------------------------
 # GOOGLE SHEETS CONNECTION
 # --------------------------
+
 def connect_gsheet():
     scope = [
-        "https://spreadsheets.google.com/feeds",
+        "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive"
     ]
-    
-    
-    
-    raw = st.secrets["CREDS_JSON"]
-
-    # 🔧 Convert real newlines → escaped ones
-    fixed = raw.replace("\n", "\\n")
-
-    creds_dict = json.loads(fixed)
-
 
     creds = Credentials.from_service_account_info(
-        creds_dict,
+        st.secrets["gcp_service_account"],
         scopes=scope
     )
 
-
-
     return gspread.authorize(creds)
+
 
 client = connect_gsheet()
 sheet = client.open("roommate_match_demo")
