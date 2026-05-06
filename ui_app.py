@@ -51,6 +51,12 @@ questions = [
 # --------------------------
 # HELPERS
 # --------------------------
+def btn(label, **kwargs):
+    # default to primary unless explicitly overridden
+    if "type" not in kwargs:
+        kwargs["type"] = "primary"
+    return btn(label, **kwargs)
+
 def load_df(table_name):
     response = supabase.table(table_name).select("*").execute()
     return pd.DataFrame(response.data)
@@ -428,7 +434,7 @@ if st.session_state.page == "login":
             st.error("Invalid credentials")
 
 
-    if st.button("Create Account"):
+    if btn("Create Account", type='secondary'):
         st.session_state.page = "signup"
         st.rerun()
 
@@ -812,15 +818,15 @@ elif st.session_state.page == "matches":
 
             with col5:
                 if status == "match":
-                    if st.button("Message", key=f"msg_{uid}", width='stretch'):
+                    if btn("Message", key=f"msg_{uid}", width='stretch'):
                         st.session_state.active_chat = uid
                         st.session_state.page = "chat"
                 elif status == "incoming":
-                    if st.button("Accept", key=f"match_accept_{uid}", width='stretch'):
+                    if btn("Accept", key=f"match_accept_{uid}", width='stretch'):
                         log_action(me, uid, "send_request")
                         st.rerun()
                 else:
-                    if st.button("Requested", key=f"match_pending_{uid}", width='stretch', disabled=True):
+                    if btn("Requested", key=f"match_pending_{uid}", width='stretch', disabled=True):
                         continue
             st.divider()
 
@@ -849,7 +855,7 @@ elif st.session_state.page == "profile":
 
     with colb:
         if match:
-            if st.button("Message", key=f"msg_{st.session_state.view_user}", width='stretch'):
+            if btn("Message", key=f"msg_{st.session_state.view_user}", width='stretch'):
                 st.session_state.active_chat = st.session_state.view_user
                 st.session_state.page = "chat"
     
@@ -857,7 +863,7 @@ elif st.session_state.page == "profile":
         if mine:
             pass
         else: 
-            if st.button("Hide User", width='stretch'):
+            if btn("Hide User", width='stretch'):
                 log_action(me, other, "hide_user")
                 st.success("User Hidden!")
                 st.rerun()
@@ -868,21 +874,21 @@ elif st.session_state.page == "profile":
         state = check_match(me, other)
 
         if state == "match":
-            st.button("Matched ✅", disabled=True, width="stretch")
+            btn("Matched ✅", disabled=True, width="stretch")
 
         elif state == "pending":
-            if st.button("Accept ✅", width="stretch"):
+            if btn("Accept ✅", width="stretch"):
                 log_action(me, other, "send_request")
                 st.success("Match confirmed!")
                 st.rerun()
 
         elif state == "requested":
-            st.button("Requested ⏳", disabled=True, width="stretch")
+            btn("Requested ⏳", disabled=True, width="stretch")
 
         elif mine:
             pass
         else:  # "none"
-            if st.button("Request ➕", width="stretch"):
+            if btn("Request ➕", width="stretch"):
                 log_action(me, other, "send_request")
                 st.success("Request sent!")
                 st.rerun()
@@ -967,7 +973,7 @@ elif st.session_state.page == "my_profile":
 
     col1, col2, col3 = st.columns([1,2,2])
     with col1:
-        if st.button("Update Account", width="stretch"):
+        if btn("Update Account", width="stretch"):
             updates = {
                 "phone": phone,
                 "email": email
@@ -1002,7 +1008,7 @@ elif st.session_state.page == "my_profile":
 
     col1, col2, col3 = st.columns([1,2,2])
     with col1:
-        if st.button("Save Basic Info", width="stretch"):
+        if btn("Save Basic Info", width="stretch"):
             supabase.table("user_info").update({
                 "first_name": first_name,
                 "last_name": last_name,
@@ -1034,7 +1040,7 @@ elif st.session_state.page == "my_profile":
     
     col1, col2, col3 = st.columns([1,2,2])
     with col1:
-        if st.button("Save Preferences", width="stretch"):
+        if btn("Save Preferences", width="stretch"):
             supabase.table("user_info").update(updated_prefs).eq("user_id", user_id).execute()
             st.success("✅ Preferences updated!")
 
@@ -1082,7 +1088,7 @@ elif st.session_state.page == "my_profile":
 
     col1, col2, col3 = st.columns([1,2,2])
     with col1:
-        if st.button("Save Importance", width="stretch"):
+        if btn("Save Importance", width="stretch"):
             # Delete old weights
             supabase.table("user_weights").delete().eq("user_id", user_id).execute()
 
@@ -1103,7 +1109,7 @@ elif st.session_state.page == "my_profile":
     # --------------------------
     col1, col2, col3 = st.columns([1,2,2])
     with col1:
-        if st.button("View My Profile", type='primary', width="stretch"):
+        if btn("View My Profile", type='primary', width="stretch"):
             st.session_state.view_user = user_id
             st.session_state.page = "profile"
             st.rerun()
