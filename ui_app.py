@@ -74,24 +74,27 @@ def log_action(src, dest, action):
 def get_match_state(me):
     logs = load_df(ws_log)
 
-    sent = logs[
+    sent_df = logs[
         (logs.user_id_source == me) &
         (logs.action == "send_request")
     ]
 
-    received = logs[
+    received_df = logs[
         (logs.user_id_dest == me) &
         (logs.action == "send_request")
     ]
 
-    mutual = set(sent.user_id_dest).intersection(
-        set(received.user_id_source)
-    )
+    # Convert to sets for fast lookup
+    sent = set(sent_df.user_id_dest)
+    received = set(received_df.user_id_source)
 
-    hidden = logs[
+    mutual = sent.intersection(received)
+
+    hidden_df = logs[
         (logs.user_id_source == me) &
         (logs.action == "hide")
     ]
+    hidden = set(hidden_df.user_id_dest)
 
     return {
         "sent": sent,
@@ -189,19 +192,18 @@ PAGE_SIZE = 10
 
 if st.session_state.user:
     # Top navigation bar using columns
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col4, col5 = st.columns([3,2,1,1])
 
     with col1:
+        if st.button("Roommate Finder"):
+            st.session_state.page = "finder"
+    with col2:
         if st.button("Matches"):
             st.session_state.page = "matches"
 
-    with col2:
-        if st.button("Roommate Finder"):
-            st.session_state.page = "finder"
-
-    with col3:
-        if st.button("Profile"):
-            st.session_state.page = "profile"
+    #with col3:
+    #    if st.button("Profile"):
+    #        st.session_state.page = "profile"
 
     with col4:
         if st.button("My Profile"):
@@ -222,16 +224,16 @@ if st.session_state.page == "login":
     st.title("Roommate Matcher 🏠")
 
     with st.form("login_form", clear_on_submit=False):
-        username = st.text_input("Username")
+        user_id = st.text_input("User_ID")
         password = st.text_input("Password", type="password")
         submit = st.form_submit_button("Sign In")
 
     if submit:
         df = load_df(ws_info)
-        user_row = df[(df["username"] == username) & (df["password"] == password)]
+        user_row = df[(df["user_id"] == user_id) & (df["password"] == password)]
 
         if not user_row.empty:
-            st.session_state.user = username
+            st.session_state.user = user_id
             st.session_state.page = "matches"
             st.rerun()
         else:
@@ -321,9 +323,12 @@ elif st.session_state.page == "finder":
     my_weights = my_weights_df.iloc[0]
 
     state = get_match_state(me)
-    hidden = state.get("hidden", [])
-    sent = state.get("sent", [])
-    mutual = state.get("mutual", [])
+        
+    sent = state["sent"]
+    received = state["received"]
+    mutual = state["mutual"]
+    hidden = state["hidden"]
+
 
     # ---- Pre-index weights for performance ----
     weights_map = {row.user_id: row for _, row in df_weights.iterrows()}
@@ -559,7 +564,7 @@ elif st.session_state.page == "profile":
     st.title("My Profile")
 
     df = load_df(ws_info)
-    user_data = df[df["username"] == st.session_state.user].iloc[0]
+    user_data = df[df["user_id"] == st.session_state.user].iloc[0]
 
     st.markdown("### Personal Info")
 
@@ -592,7 +597,7 @@ elif st.session_state.page == "my_profile":
     st.title("Edit Profile")
 
     df = load_df(ws_info)
-    user_idx = df[df["username"] == st.session_state.user].index[0]
+    user_idx = df[df["user_id"] == st.session_state.user].index[0]
     user_data = df.loc[user_idx]
 
     with st.form("edit_profile_form"):
