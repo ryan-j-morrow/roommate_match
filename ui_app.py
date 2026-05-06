@@ -366,13 +366,13 @@ PAGE_SIZE = 10
 
 if st.session_state.user:
 
-    with st.container(height=180, vertical_alignment='center'):
+    with st.container(height=180, vertical_alignment='center', border=None):
 
-        sect1, sect2 = st.columns([2, 3])
+        sect1, sect2 = st.columns([2, 3], vertical_alignment='center')
 
         with sect1:
 
-            col1, col2 = st.columns([2.5, 10])  # slightly more space for image
+            col1, col2 = st.columns([2.5, 10], vertical_alignment='center')  # slightly more space for image
 
             with col1:
                 st.image("logo.png", width=150)  # ✅ bigger logo
@@ -388,7 +388,8 @@ if st.session_state.user:
         with sect2:
 
             buf0, nav1, buf1, nav2, buf2, nav3, buf3, nav4, buf4, nav5, buf5 = st.columns(
-                [0.5,1,0.5,1,0.5,1,0.5,1,0.5,1,0.5]
+                [0.5,1,0.5,1,0.5,1,0.5,1,0.5,1,0.5],
+                vertical_alignment='center'
             )
 
             if nav1.button(
@@ -710,7 +711,7 @@ elif st.session_state.page == "finder":
         with st.container():
 
             # --- COMPATIBILITY (big) ---
-            buff, col1, col2, col3, col4 = st.columns([.5,2, 1, 1, 1])
+            buff, col1, col2, col3, col4 = st.columns([.25,2, 1, 1, 1])
 
             with col1:
                 # --- NAME (big + bold, keep this style) ---
@@ -824,7 +825,7 @@ elif st.session_state.page == "matches":
 
         with st.container():
 
-            buff, col1, col2, col3, col4, col5 = st.columns([.5,2,1,1,1,1])
+            buff, col1, col2, col3, col4, col5 = st.columns([.25,2,1,1,1,1])
 
             with col1:
                 st.markdown(f"### 👤 {user.first_name} {user.last_name}")
