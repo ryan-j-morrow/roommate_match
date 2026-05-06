@@ -542,7 +542,7 @@ elif st.session_state.page == "matches":
 
                 elif status == "incoming":
                     if col2.button("Accept", key=f"match_accept_{uid}"):
-                        log_action(me, uid, "accept_request")
+                        log_action(me, uid, "send_request")
                         st.rerun()
 
                 else:
