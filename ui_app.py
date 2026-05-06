@@ -496,7 +496,7 @@ elif st.session_state.page == "finder":
             continue
         user = user_df.iloc[0]
 
-       with st.container():
+        with st.container():
             # --- NAME (big + bold, keep this style) ---
             st.markdown(f"### 👤 {user.first_name} {user.last_name}")
 
@@ -516,7 +516,7 @@ elif st.session_state.page == "finder":
             b1, b2, b3 = st.columns([2, 2, 1.5])
 
             # --- VIEW PROFILE (NEW BUTTON) ---
-            if b1.button("View Profile", key=f"view_{uid}"):
+            if b1.button("View Profile", key=f"view_{uid}", width='stretch'):
                 st.session_state.view_user = uid
                 st.session_state.page = "profile"
 
@@ -524,20 +524,21 @@ elif st.session_state.page == "finder":
             already_requested = uid in sent
 
             if uid in received:
-                if b2.button("Accept", key=f"accept_{uid}"):
+                if b2.button("Accept", key=f"accept_{uid}", width='stretch'):
                     log_action(me, uid, "send_request")
                     st.rerun()
             else:
                 b2.button(
                     "Requested" if already_requested else "Request",
                     key=f"req_{uid}",
+                    width='stretch',
                     disabled=already_requested,
                     on_click=(lambda u=uid: log_action(me, u, "send_request"))
                     if not already_requested else None
                 )
 
             # --- HIDE BUTTON ---
-            if b3.button("Hide", key=f"hide_{uid}"):
+            if b3.button("Hide", key=f"hide_{uid}", width='stretch'):
                 log_action(me, uid, "hide_user")
                 st.rerun()
 
