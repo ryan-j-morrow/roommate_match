@@ -883,10 +883,14 @@ elif st.session_state.page == "my_profile":
 
     user_id = st.session_state.user
 
-    # Load current user info
+    # Load user data
     user_info = get_data("user_info", user_id)
-    user_prefs = get_data("preferences", user_id)
-    user_weights = get_data("weights", user_id)
+
+    # Load weights table (long format)
+    weights_df = load_df("user_weights")
+    user_weights = weights_df[weights_df["user_id"] == user_id]
+
+    weight_dict = dict(zip(user_weights["question"], user_weights["weight"]))
 
     # --------------------------
     # ACCOUNT SETTINGS
@@ -896,26 +900,61 @@ elif st.session_state.page == "my_profile":
     col1, col2 = st.columns(2)
 
     with col1:
-        new_username = st.text_input("Username", value=user_info.get("user_id", ""))
+        new_password = st.text_input("New Password", type="password")
 
     with col2:
-        new_password = st.text_input("Password", type="password")
+        phone = st.text_input("Phone", value=user_info.get("phone", ""))
+        email = st.text_input("Email", value=user_info.get("email", ""))
 
     if st.button("Update Account"):
-        if new_username:
-            supabase.table("user_info").update({
-                "user_id": new_username,
-                "password": new_password if new_password else user_info["password"]
-            }).eq("user_id", user_id).execute()
+        updates = {
+            "phone": phone,
+            "email": email
+        }
 
-            st.success("✅ Account updated!")
+        if new_password:
+            updates["password"] = new_password
+
+        supabase.table("user_info").update(updates).eq("user_id", user_id).execute()
+        st.success("✅ Account updated!")
 
     st.markdown("---")
 
     # --------------------------
-    # PREFERENCES
+    # PERSONAL INFO
     # --------------------------
-    st.subheader("Preferences")
+    st.subheader("Basic Info")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        first_name = st.text_input("First Name", value=user_info.get("first_name", ""))
+        age = st.selectbox("Age", age_options, index=age_options.index(user_info.get("age", 18)))
+
+    with col2:
+        last_name = st.text_input("Last Name", value=user_info.get("last_name", ""))
+        gender = st.selectbox(
+            "Gender",
+            gender_options,
+            index=gender_options.index(user_info.get("gender", gender_options[0]))
+        )
+
+    if st.button("Save Basic Info"):
+        supabase.table("user_info").update({
+            "first_name": first_name,
+            "last_name": last_name,
+            "age": age,
+            "gender": gender
+        }).eq("user_id", user_id).execute()
+
+        st.success("✅ Basic info updated!")
+
+    st.markdown("---")
+
+    # --------------------------
+    # LIFESTYLE PREFERENCES
+    # --------------------------
+    st.subheader("Lifestyle Preferences")
 
     updated_prefs = {}
 
@@ -926,69 +965,56 @@ elif st.session_state.page == "my_profile":
             updated_prefs[key] = st.selectbox(
                 key.replace("_", " ").title(),
                 options,
-                index=options.index(user_prefs.get(key)) if user_prefs and user_prefs.get(key) in options else 0
+                index=options.index(user_info.get(key)) if user_info.get(key) in options else 0
             )
 
     if st.button("Save Preferences"):
-        supabase.table("preferences").upsert({
-            "user_id": user_id,
-            **updated_prefs
-        }).execute()
-
+        supabase.table("user_info").update(updated_prefs).eq("user_id", user_id).execute()
         st.success("✅ Preferences updated!")
 
     st.markdown("---")
 
     # --------------------------
-    # IMPORTANCE / NON-NEGOTIABLES
+    # IMPORTANCE (WEIGHTS)
     # --------------------------
-    st.subheader("Importance & Non-Negotiables")
+    st.subheader("What's Important To You")
 
-    st.caption("Set how important each category is, and mark must-haves ✅")
+    st.caption("Adjust how much each factor matters in matching")
 
     updated_weights = {}
-    non_negotiables = {}
 
     for key, _ in questions:
-        col1, col2 = st.columns([3, 1])
+        updated_weights[key] = st.slider(
+            key.replace("_", " ").title(),
+            0, 10,
+            int(weight_dict.get(key, 5))
+        )
 
-        with col1:
-            updated_weights[key] = st.slider(
-                f"{key.replace('_',' ').title()} Importance",
-                0, 10,
-                int(user_weights.get(key, 5)) if user_weights else 5
-            )
+    if st.button("Save Importance"):
+        # Delete old weights
+        supabase.table("user_weights").delete().eq("user_id", user_id).execute()
 
-        with col2:
-            non_negotiables[key] = st.checkbox(
-                "Must",
-                value=bool(user_weights.get(f"{key}_must", False)) if user_weights else False,
-                key=f"must_{key}"
-            )
+        # Insert new weights
+        rows = [
+            {"user_id": user_id, "question": q, "weight": w}
+            for q, w in updated_weights.items()
+        ]
 
-    if st.button("Save Importance Settings"):
-        data = {"user_id": user_id}
+        supabase.table("user_weights").insert(rows).execute()
 
-        for key in updated_weights:
-            data[key] = updated_weights[key]
-            data[f"{key}_must"] = non_negotiables[key]
-
-        supabase.table("weights").upsert(data).execute()
-
-        st.success("✅ Importance settings saved!")
+        st.success("✅ Importance settings updated!")
 
     st.markdown("---")
 
     # --------------------------
-    # PROFILE PREVIEW
+    # PROFILE SUMMARY
     # --------------------------
-    st.subheader("Profile Preview 👀")
+    st.subheader("Preview 👀")
 
     st.json({
-        "Account": new_username,
+        "Name": f"{first_name} {last_name}",
         "Preferences": updated_prefs,
-        "Importance": updated_weights,
-        "Must-Haves": non_negotiables
+        "Importance": updated_weights
     })
 
 # --------------------------
