@@ -913,7 +913,7 @@ elif st.session_state.page == "my_profile":
 
     col1, col2, col3 = st.columns([1,1,1])
     with col1:
-        if st.button("Update Account", width="Stretch"):
+        if st.button("Update Account", width="stretch"):
             updates = {
                 "phone": phone,
                 "email": email
@@ -948,7 +948,7 @@ elif st.session_state.page == "my_profile":
 
     col1, col2, col3 = st.columns([1,1,1])
     with col1:
-        if st.button("Save Basic Info", width="Stretch"):
+        if st.button("Save Basic Info", width="stretch"):
             supabase.table("user_info").update({
                 "first_name": first_name,
                 "last_name": last_name,
@@ -980,7 +980,7 @@ elif st.session_state.page == "my_profile":
     
     col1, col2, col3 = st.columns([1,1,1])
     with col1:
-        if st.button("Save Preferences", width="Stretch"):
+        if st.button("Save Preferences", width="stretch"):
             supabase.table("user_info").update(updated_prefs).eq("user_id", user_id).execute()
             st.success("✅ Preferences updated!")
 
@@ -1028,7 +1028,7 @@ elif st.session_state.page == "my_profile":
 
     col1, col2, col3 = st.columns([1,1,1])
     with col1:
-        if st.button("Save Importance", width="Stretch"):
+        if st.button("Save Importance", width="stretch"):
             # Delete old weights
             supabase.table("user_weights").delete().eq("user_id", user_id).execute()
 
@@ -1049,7 +1049,7 @@ elif st.session_state.page == "my_profile":
     # --------------------------
     col1, col2, col3 = st.columns([1,1,1])
     with col1:
-        if st.button("View My Profile", type='Primary', width="Stretch"):
+        if st.button("View My Profile", type='Primary', width="stretch"):
             st.session_state.view_user = user_id
             st.session_state.page = "profile"
             st.rerun()
