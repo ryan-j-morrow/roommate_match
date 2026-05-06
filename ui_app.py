@@ -53,7 +53,7 @@ def load_df(table_name):
     return pd.DataFrame(response.data)
 
 def authenticate_user(user_id, password):
-    response = supabase.table("users") \
+    response = supabase.table("user_info") \
         .select("*") \
         .eq("user_id", user_id) \
         .eq("password", password) \
