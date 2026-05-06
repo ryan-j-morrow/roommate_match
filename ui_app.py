@@ -754,26 +754,15 @@ elif st.session_state.page == "matches":
             with col2:
                 if status == "match":
                     col2.success("Matched")
-                else:
-                    if col2.button("View", key=f"match_view_{uid}", width="stretch"):
-                        st.session_state.view_user = uid
-                        st.session_state.page = "profile"
-                        st.rerun()
+                if status == "incoming":
+                    col2.message("Pending")
+                
 
             with col3:
-                if status == "match":
-                    if col3.button("View", key=f"match_view_{uid}", width="stretch"):
-                        st.session_state.view_user = uid
-                        st.session_state.page = "profile"
-                        st.rerun()
-
-                elif status == "incoming":
-                    if col3.button("Accept", key=f"match_accept_{uid}", width='stretch'):
-                        log_action(me, uid, "send_request")
-                        st.rerun()
-
-                else:
-                    col3.info("Pending 📩")
+                if col3.button("View", key=f"match_view_{uid}", width="stretch"):
+                    st.session_state.view_user = uid
+                    st.session_state.page = "profile"
+                    st.rerun()
 
 
             with col4:
@@ -783,11 +772,16 @@ elif st.session_state.page == "matches":
 
             with col5:
                 if status == "match":
-                    if check_match(st.session_state.user, uid) == "match":
-                        if st.button("Message", key=f"msg_{uid}", width='stretch'):
-                            st.session_state.active_chat = uid
-                            st.session_state.page = "chat"
-                
+                    if st.button("Message", key=f"msg_{uid}", width='stretch'):
+                        st.session_state.active_chat = uid
+                        st.session_state.page = "chat"
+                elif status == "incoming":
+                    if st.button("Accept", key=f"match_accept_{uid}", width='stretch'):
+                        log_action(me, uid, "send_request")
+                        st.rerun()
+                else:
+                    if st.button("Requested", key=f"match_pending_{uid}", width='stretch', disabled=True):
+                        continue
             st.divider()
 
 
