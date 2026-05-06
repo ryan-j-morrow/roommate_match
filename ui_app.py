@@ -674,9 +674,19 @@ elif st.session_state.page == "profile":
 elif st.session_state.page == "my_profile":
     st.title("Edit Profile")
 
+    
     df = load_df(ws_info)
-    user_idx = df[df["user_id"] == st.session_state.user].index[0]
+
+    # Find the matching user row
+    filtered = df[df["user_id"] == st.session_state.user]
+
+    if filtered.empty:
+        st.error("User profile not found. Please log in again.")
+        st.stop()
+
+    user_idx = filtered.index[0]
     user_data = df.loc[user_idx]
+
 
     with st.form("edit_profile_form"):
         updated = {}
