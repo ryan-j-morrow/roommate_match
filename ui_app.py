@@ -107,14 +107,14 @@ def is_match(user_a, user_b):
     logs = load_df(ws_log)
 
     liked_a_to_b = (
-        (logs["src"] == user_a) &
-        (logs["dest"] == user_b) &
+        (logs["user_id_source"] == user_a) &
+        (logs["user_id_dest"] == user_b) &
         (logs["action"] == "like")
     )
 
     liked_b_to_a = (
-        (logs["src"] == user_b) &
-        (logs["dest"] == user_a) &
+        (logs["user_id_source"] == user_b) &
+        (logs["user_id_dest"] == user_a) &
         (logs["action"] == "like")
     )
 
